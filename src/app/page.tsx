@@ -27,12 +27,13 @@ import {
   Modal,
   Skeleton,
 } from "@/components/ui";
-import { formatTanggal } from "@/lib/calc";
+import { formatTanggal, KATEGORI_USIA_LIST } from "@/lib/calc";
 
 interface Stats {
   totals: Record<string, number>;
   byKelompok: Array<Record<string, string | number>>;
   distribusiUsia: Array<{ label: string; L: number; P: number }>;
+  kbAktif?: number;
 }
 
 interface WargaRow {
@@ -176,6 +177,31 @@ export default function DashboardPage() {
   const [warga, setWarga] = useState<WargaRow[] | null>(null);
   const [dErr, setDErr] = useState("");
   const [dq, setDq] = useState("");
+  const [cetak, setCetak] = useState(false);
+
+  const cetakPdf = async () => {
+    if (!warga) {
+      try {
+        const r = await fetch("/api/warga");
+        if (!r.ok) throw new Error();
+        setWarga(await r.json());
+      } catch {
+        return;
+      }
+    }
+    setCetak(true);
+  };
+
+  useEffect(() => {
+    if (!cetak) return;
+    const done = () => setCetak(false);
+    window.addEventListener("afterprint", done);
+    const t = setTimeout(() => window.print(), 150);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("afterprint", done);
+    };
+  }, [cetak]);
 
   const load = () => {
     setErr("");
@@ -335,6 +361,10 @@ export default function DashboardPage() {
           <Link href="/laporan">
             <Btn variant="secondary" size="sm">Laporan</Btn>
           </Link>
+          <Btn variant="secondary" size="sm" onClick={cetakPdf}>
+            <Icon name="printer" className="h-4 w-4" />
+            Cetak PDF
+          </Btn>
           <a href="/api/export">
             <Btn size="sm">Ekspor Data</Btn>
           </a>
@@ -481,6 +511,232 @@ export default function DashboardPage() {
         </div>
       </Card>
 
+      <div className="print-area bg-white text-slate-900">
+        <div className="mb-5 flex items-center gap-4 border-b-4 border-double border-slate-800 pb-4">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 border-slate-400 text-emerald-700">
+            <Icon name="building" className="h-8 w-8" />
+          </div>
+          <div className="min-w-0 flex-1 text-center">
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+              Pemerintah DKI Jakarta · Kecamatan Cilincing
+            </p>
+            <h1 className="text-xl font-extrabold uppercase leading-tight tracking-tight">
+              Data Warga Binaan Dasa Wisma
+            </h1>
+            <p className="text-sm font-semibold text-slate-600">
+              RT 04 / RW 11 — Kelurahan Rorotan, Jakarta Utara
+            </p>
+          </div>
+          <div className="h-16 w-16 shrink-0" />
+        </div>
+
+        <div className="mb-6 text-center">
+          <h2 className="inline-block border-b-2 border-slate-800 pb-1 text-base font-extrabold uppercase tracking-wider">
+            Laporan Ringkasan Statistik
+          </h2>
+          <p className="mt-1.5 text-xs text-slate-500">ID U11289 · Dicetak: {today}</p>
+        </div>
+
+        <table className="mb-2 w-full border-collapse text-center text-sm">
+          <tbody>
+            <tr>
+              {[
+                { l: "Total Jiwa", v: t.individu, hi: true },
+                { l: "Keluarga (KK)", v: t.keluarga },
+                { l: "Bangunan", v: t.bangunan },
+                { l: "Kelompok", v: stats.byKelompok.length },
+              ].map((b) => (
+                <td key={b.l} className="border border-slate-300 px-2 py-3">
+                  <p className={`text-2xl font-extrabold tabular-nums ${b.hi ? "text-emerald-700" : ""}`}>{b.v}</p>
+                  <p className="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">{b.l}</p>
+                </td>
+              ))}
+            </tr>
+            <tr>
+              {[
+                { l: "Laki-laki", v: t.laki },
+                { l: "Perempuan", v: t.perempuan },
+                { l: "Balita (0–4 th)", v: t.balita },
+                { l: "Lansia (60+ th)", v: t.lansia },
+              ].map((b) => (
+                <td key={b.l} className="border border-slate-300 px-2 py-3">
+                  <p className="text-xl font-extrabold tabular-nums">{b.v}</p>
+                  <p className="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">{b.l}</p>
+                </td>
+              ))}
+            </tr>
+            <tr>
+              {[
+                { l: "Ibu Hamil", v: t.ibu_hamil },
+                { l: "WUS", v: t.wus },
+                { l: "PUS", v: t.pus },
+                { l: "Peserta KB Aktif", v: stats.kbAktif ?? 0 },
+              ].map((b) => (
+                <td key={b.l} className="border border-slate-300 px-2 py-3">
+                  <p className="text-xl font-extrabold tabular-nums">{b.v}</p>
+                  <p className="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">{b.l}</p>
+                </td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+        {(t.pindah > 0 || t.meninggal > 0) && (
+          <p className="mb-6 text-right text-[11px] italic text-slate-500">
+            Arsip tidak dihitung di atas: {t.pindah} pindah · {t.meninggal} meninggal
+          </p>
+        )}
+
+        <h3 className="mb-2 mt-6 text-sm font-extrabold uppercase tracking-wide">A. Rekapitulasi per Kelompok</h3>
+        <table className="w-full border-collapse text-sm">
+          <thead>
+            <tr className="bg-slate-100 text-[11px] uppercase tracking-wider text-slate-600">
+              <th className="border border-slate-300 px-3 py-2 text-left font-bold">Kelompok</th>
+              <th className="border border-slate-300 px-2 py-2 text-center font-bold">Bangunan</th>
+              <th className="border border-slate-300 px-2 py-2 text-center font-bold">Keluarga</th>
+              <th className="border border-slate-300 px-2 py-2 text-center font-bold">Individu</th>
+              <th className="border border-slate-300 px-2 py-2 text-center font-bold">L</th>
+              <th className="border border-slate-300 px-2 py-2 text-center font-bold">P</th>
+              <th className="border border-slate-300 px-2 py-2 text-center font-bold">Balita</th>
+              <th className="border border-slate-300 px-2 py-2 text-center font-bold">WUS</th>
+              <th className="border border-slate-300 px-2 py-2 text-center font-bold">PUS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {stats.byKelompok.map((k) => (
+              <tr key={String(k.id)} className="odd:bg-white even:bg-slate-50/50">
+                <td className="border border-slate-300 px-3 py-1.5">
+                  <span className="font-semibold">{k.nama}</span>{" "}
+                  <span className="font-mono text-[10px] text-slate-400">{k.kode}</span>
+                </td>
+                <td className="border border-slate-300 px-2 py-1.5 text-center tabular-nums">{k.bangunan}</td>
+                <td className="border border-slate-300 px-2 py-1.5 text-center tabular-nums">{k.keluarga}</td>
+                <td className="border border-slate-300 px-2 py-1.5 text-center font-bold tabular-nums">{k.individu}</td>
+                <td className="border border-slate-300 px-2 py-1.5 text-center tabular-nums">{k.laki}</td>
+                <td className="border border-slate-300 px-2 py-1.5 text-center tabular-nums">{k.perempuan}</td>
+                <td className="border border-slate-300 px-2 py-1.5 text-center tabular-nums">{k.balita}</td>
+                <td className="border border-slate-300 px-2 py-1.5 text-center tabular-nums">{k.wus}</td>
+                <td className="border border-slate-300 px-2 py-1.5 text-center tabular-nums">{k.pus}</td>
+              </tr>
+            ))}
+            <tr className="bg-emerald-50/70 font-extrabold">
+              <td className="border border-slate-300 px-3 py-1.5">TOTAL</td>
+              <td className="border border-slate-300 px-2 py-1.5 text-center tabular-nums">{t.bangunan}</td>
+              <td className="border border-slate-300 px-2 py-1.5 text-center tabular-nums">{t.keluarga}</td>
+              <td className="border border-slate-300 px-2 py-1.5 text-center tabular-nums">{t.individu}</td>
+              <td className="border border-slate-300 px-2 py-1.5 text-center tabular-nums">{t.laki}</td>
+              <td className="border border-slate-300 px-2 py-1.5 text-center tabular-nums">{t.perempuan}</td>
+              <td className="border border-slate-300 px-2 py-1.5 text-center tabular-nums">{t.balita}</td>
+              <td className="border border-slate-300 px-2 py-1.5 text-center tabular-nums">{t.wus}</td>
+              <td className="border border-slate-300 px-2 py-1.5 text-center tabular-nums">{t.pus}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 className="mb-2 mt-6 text-sm font-extrabold uppercase tracking-wide">B. Distribusi Usia per Jenis Kelamin</h3>
+        <table className="w-full border-collapse text-sm">
+          <thead>
+            <tr className="bg-slate-100 text-[11px] uppercase tracking-wider text-slate-600">
+              <th className="border border-slate-300 px-3 py-2 text-left font-bold">Kategori Usia</th>
+              <th className="border border-slate-300 px-2 py-2 text-center font-bold">Laki-laki</th>
+              <th className="border border-slate-300 px-2 py-2 text-center font-bold">Perempuan</th>
+              <th className="border border-slate-300 px-2 py-2 text-center font-bold">Jumlah</th>
+            </tr>
+          </thead>
+          <tbody>
+            {KATEGORI_USIA_LIST.map((label) => {
+              const d = stats.distribusiUsia.find((x) => x.label === label);
+              const L = d?.L ?? 0;
+              const P = d?.P ?? 0;
+              return (
+                <tr key={label} className="odd:bg-white even:bg-slate-50/50">
+                  <td className="border border-slate-300 px-3 py-1.5">{label}</td>
+                  <td className="border border-slate-300 px-2 py-1.5 text-center tabular-nums">{L}</td>
+                  <td className="border border-slate-300 px-2 py-1.5 text-center tabular-nums">{P}</td>
+                  <td className="border border-slate-300 px-2 py-1.5 text-center font-semibold tabular-nums">{L + P}</td>
+                </tr>
+              );
+            })}
+            <tr className="bg-emerald-50/70 font-extrabold">
+              <td className="border border-slate-300 px-3 py-1.5">TOTAL</td>
+              <td className="border border-slate-300 px-2 py-1.5 text-center tabular-nums">{t.laki}</td>
+              <td className="border border-slate-300 px-2 py-1.5 text-center tabular-nums">{t.perempuan}</td>
+              <td className="border border-slate-300 px-2 py-1.5 text-center tabular-nums">{t.individu}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 className="mb-2 mt-6 text-sm font-extrabold uppercase tracking-wide">C. Daftar Warga (untuk pemeriksaan)</h3>
+        {(() => {
+          const aktif = (warga || []).filter((w) => w.status_warga === "aktif");
+          return stats.byKelompok.map((k) => {
+            const rows = aktif
+              .filter((w) => w.kelompok_nama === k.nama)
+              .sort(
+                (a, b) =>
+                  a.bangunan_nama.localeCompare(b.bangunan_nama) ||
+                  a.keluarga_nama.localeCompare(b.keluarga_nama) ||
+                  a.nama.localeCompare(b.nama)
+              );
+            const l = rows.filter((w) => w.jenis_kelamin === "L").length;
+            const p = rows.length - l;
+            return (
+              <div key={String(k.id)} className="kelompok-block mb-5">
+                <p className="mb-1.5 bg-slate-800 px-3 py-1.5 text-xs font-extrabold uppercase tracking-wider text-white">
+                  {k.nama} — {rows.length} jiwa
+                </p>
+                <table className="w-full border-collapse text-[11px]">
+                  <thead>
+                    <tr className="bg-slate-100 text-[10px] uppercase tracking-wider text-slate-600">
+                      <th className="border border-slate-300 px-1.5 py-1.5 text-center font-bold w-8">No</th>
+                      <th className="border border-slate-300 px-2 py-1.5 text-left font-bold">Nama</th>
+                      <th className="border border-slate-300 px-1.5 py-1.5 text-center font-bold w-9">L/P</th>
+                      <th className="border border-slate-300 px-1.5 py-1.5 text-center font-bold w-10">Usia</th>
+                      <th className="border border-slate-300 px-2 py-1.5 text-left font-bold">Hubungan</th>
+                      <th className="border border-slate-300 px-2 py-1.5 text-left font-bold">KRT</th>
+                      <th className="border border-slate-300 px-2 py-1.5 text-left font-bold">Bangunan</th>
+                      <th className="border border-slate-300 px-1.5 py-1.5 text-center font-bold w-14">Paraf</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((w, i) => (
+                      <tr key={w.id} className="odd:bg-white even:bg-slate-50/50">
+                        <td className="border border-slate-300 px-1.5 py-1 text-center tabular-nums">{i + 1}</td>
+                        <td className="border border-slate-300 px-2 py-1 font-medium">
+                          {w.nama}
+                          {w.is_hamil && <span className="ml-1 text-[9px] font-bold uppercase text-rose-600">• Hamil</span>}
+                        </td>
+                        <td className="border border-slate-300 px-1.5 py-1 text-center">{w.jenis_kelamin || "-"}</td>
+                        <td className="border border-slate-300 px-1.5 py-1 text-center tabular-nums">{w.usia ?? "-"}</td>
+                        <td className="border border-slate-300 px-2 py-1">{w.hubungan || "-"}</td>
+                        <td className="border border-slate-300 px-2 py-1">{w.keluarga_nama}</td>
+                        <td className="border border-slate-300 px-2 py-1">{w.bangunan_nama}</td>
+                        <td className="border border-slate-300 px-1.5 py-1"></td>
+                      </tr>
+                    ))}
+                    <tr className="bg-emerald-50/70 font-bold">
+                      <td colSpan={1} className="border border-slate-300 px-1.5 py-1 text-center">Σ</td>
+                      <td className="border border-slate-300 px-2 py-1">Subtotal: {rows.length} jiwa</td>
+                      <td className="border border-slate-300 px-1.5 py-1 text-center">L: {l}</td>
+                      <td className="border border-slate-300 px-1.5 py-1 text-center">P: {p}</td>
+                      <td colSpan={4} className="border border-slate-300 px-2 py-1"></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            );
+          });
+        })()}
+
+        <div className="mt-12 flex justify-end">
+          <div className="text-center text-sm">
+            <p className="text-slate-600">Jakarta Utara, {today}</p>
+            <p className="font-semibold text-slate-700">Ketua Dasa Wisma</p>
+            <div className="h-20" />
+            <p className="font-semibold underline">( ................................ )</p>
+          </div>
+        </div>
+      </div>
+
       <Modal
         open={!!detail}
         onClose={closeDetail}
@@ -582,6 +838,37 @@ export default function DashboardPage() {
           </div>
         )}
       </Modal>
+
+      <style jsx global>{`
+        .print-area {
+          display: none;
+        }
+        @media print {
+          @page {
+            size: A4 portrait;
+            margin: 12mm;
+          }
+          body * {
+            visibility: hidden;
+          }
+          .print-area {
+            display: block !important;
+            position: absolute;
+            inset: 0;
+            background: white;
+          }
+          .print-area,
+          .print-area * {
+            visibility: visible;
+          }
+          .print-area tr {
+            page-break-inside: avoid;
+          }
+          .kelompok-block p {
+            break-after: avoid;
+          }
+        }
+      `}</style>
     </>
   );
 }
