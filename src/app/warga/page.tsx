@@ -435,60 +435,87 @@ export default function WargaPage() {
       </div>
 
       <Card className="mb-4 p-3 sm:p-4">
-        <div className="flex flex-col gap-2.5 md:flex-row md:items-center">
-          <div className="relative md:flex-1">
-            <Icon name="search" className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              ref={searchRef}
-              className={`${inputCls} pl-10 pr-16`}
-              placeholder="Cari nama, NIK, atau bangunan..."
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-            />
-            <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 items-center gap-0.5 rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 ring-1 ring-slate-200 sm:flex">
-              Ctrl K
-            </kbd>
+        <div className="flex flex-col gap-2.5">
+          <div className="flex flex-col gap-2.5 md:flex-row md:items-center">
+            <div className="relative md:flex-1">
+              <Icon name="search" className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                ref={searchRef}
+                className={`${inputCls} pl-10 pr-16`}
+                placeholder="Cari nama, NIK, atau bangunan..."
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+              />
+              <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 items-center gap-0.5 rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 ring-1 ring-slate-200 sm:flex">
+                Ctrl K
+              </kbd>
+            </div>
+            <div className="hidden items-center gap-2 md:flex">
+              <button
+                onClick={() => setAdvOpen(!advOpen)}
+                className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold ring-1 transition-all ${
+                  advOpen || hasFilter
+                    ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                    : "bg-white text-slate-500 ring-slate-200"
+                }`}
+              >
+                <Icon name="filter" className="h-3.5 w-3.5" />
+                Filter
+                {hasFilter && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />}
+                <Icon name="chevronDown" className={`ml-0.5 h-3.5 w-3.5 transition-transform ${advOpen ? "rotate-180" : ""}`} />
+              </button>
+              {hasFilter && (
+                <button
+                  onClick={resetFilter}
+                  className="text-xs font-semibold text-slate-400 transition-colors hover:text-red-500"
+                >
+                  Reset
+                </button>
+              )}
+            </div>
           </div>
-          <div className="hidden flex-wrap gap-2 md:flex">
-            <select className={`${inputCls} w-44`} value={fKel} onChange={(e) => setFKel(e.target.value)}>
-              <option value="">Semua Kelompok</option>
-              {struktur.map((k) => (
-                <option key={k.id} value={k.nama}>{k.nama}</option>
-              ))}
-            </select>
-            <select className={`${inputCls} w-36`} value={fKat} onChange={(e) => setFKat(e.target.value)}>
-              <option value="">Kategori</option>
-              {["Balita", "Anak", "Remaja", "Dewasa", "Lansia"].map((k) => (
-                <option key={k}>{k}</option>
-              ))}
-            </select>
-            <select className={`${inputCls} w-40`} value={fKatBaru} onChange={(e) => setFKatBaru(e.target.value)}>
-              <option value="">Kategori Baru</option>
-              {KATEGORI_USIA_BARU_LIST.map((k) => (
-                <option key={k.range} value={k.range}>
-                  {k.range}
-                </option>
-              ))}
-            </select>
-            <select className={`${inputCls} w-36`} value={fPend} onChange={(e) => setFPend(e.target.value)}>
-              <option value="">Pendidikan</option>
-              {PENDIDIKAN_LIST.map((k) => (
-                <option key={k.range} value={k.range}>
-                  {k.range}
-                </option>
-              ))}
-            </select>
-            <select className={`${inputCls} w-32`} value={fJk} onChange={(e) => setFJk(e.target.value)}>
-              <option value="">L & P</option>
-              <option value="L">Laki-laki</option>
-              <option value="P">Perempuan</option>
-            </select>
-            <select className={`${inputCls} w-32`} value={fWus} onChange={(e) => setFWus(e.target.value)}>
-              <option value="">Status</option>
-              <option value="wus">WUS saja</option>
-              <option value="pus">PUS saja</option>
-            </select>
-          </div>
+          {advOpen && (
+            <div className="hidden flex-wrap gap-2 md:flex">
+              <select className={`${inputCls} w-44`} value={fKel} onChange={(e) => setFKel(e.target.value)}>
+                <option value="">Semua Kelompok</option>
+                {struktur.map((k) => (
+                  <option key={k.id} value={k.nama}>{k.nama}</option>
+                ))}
+              </select>
+              <select className={`${inputCls} w-36`} value={fKat} onChange={(e) => setFKat(e.target.value)}>
+                <option value="">Kategori</option>
+                {["Balita", "Anak", "Remaja", "Dewasa", "Lansia"].map((k) => (
+                  <option key={k}>{k}</option>
+                ))}
+              </select>
+              <select className={`${inputCls} w-40`} value={fKatBaru} onChange={(e) => setFKatBaru(e.target.value)}>
+                <option value="">Kategori Baru</option>
+                {KATEGORI_USIA_BARU_LIST.map((k) => (
+                  <option key={k.range} value={k.range}>
+                    {k.range}
+                  </option>
+                ))}
+              </select>
+              <select className={`${inputCls} w-36`} value={fPend} onChange={(e) => setFPend(e.target.value)}>
+                <option value="">Pendidikan</option>
+                {PENDIDIKAN_LIST.map((k) => (
+                  <option key={k.range} value={k.range}>
+                    {k.range}
+                  </option>
+                ))}
+              </select>
+              <select className={`${inputCls} w-32`} value={fJk} onChange={(e) => setFJk(e.target.value)}>
+                <option value="">L & P</option>
+                <option value="L">Laki-laki</option>
+                <option value="P">Perempuan</option>
+              </select>
+              <select className={`${inputCls} w-32`} value={fWus} onChange={(e) => setFWus(e.target.value)}>
+                <option value="">Status</option>
+                <option value="wus">WUS saja</option>
+                <option value="pus">PUS saja</option>
+              </select>
+            </div>
+          )}
         </div>
 
         <div className="mt-3 md:hidden">
