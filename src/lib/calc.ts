@@ -125,6 +125,37 @@ export function labelKategoriUsiaBaru(usia: number | null): string {
   return k ? `${k.range} · ${k.nama}` : "";
 }
 
+export const PENDIDIKAN_LIST: Array<{
+  range: string;
+  nama: string;
+  min: number;
+  max: number | null;
+}> = [
+  { range: "0-3", nama: "Belum Sekolah", min: 0, max: 3 },
+  { range: "4-6", nama: "Paud/TK", min: 4, max: 6 },
+  { range: "7-12", nama: "SD", min: 7, max: 12 },
+  { range: "13-15", nama: "SMP", min: 13, max: 15 },
+  { range: "16-18", nama: "SMA", min: 16, max: 18 },
+  { range: "19-22", nama: "S1", min: 19, max: 22 },
+  { range: "23+", nama: "Lainnya", min: 23, max: null },
+];
+
+export function pendidikanUsia(usia: number | null): string {
+  if (usia === null) return "";
+  const k = PENDIDIKAN_LIST.find(
+    (x) => usia >= x.min && (x.max === null || usia <= x.max),
+  );
+  return k ? k.range : "";
+}
+
+export function labelPendidikan(usia: number | null): string {
+  if (usia === null) return "";
+  const k = PENDIDIKAN_LIST.find(
+    (x) => usia >= x.min && (x.max === null || usia <= x.max),
+  );
+  return k ? `${k.range} · ${k.nama}` : "";
+}
+
 export const HUBUNGAN_LIST = [
   "KRT", "KRT/Ayah", "KRT/Ibu", "KRT/Suami", "KRT/Istri",
   "Ayah", "Ibu", "Suami", "Istri", "Anak", "Anak Perempuan",

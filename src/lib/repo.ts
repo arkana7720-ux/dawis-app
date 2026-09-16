@@ -5,6 +5,8 @@ import {
   kategori,
   kategoriUsiaBaru,
   KATEGORI_USIA_BARU_LIST,
+  pendidikanUsia,
+  PENDIDIKAN_LIST,
   isWUS,
   isPUS,
 } from "./calc";
@@ -49,6 +51,7 @@ export interface WargaRow {
   kategori_usia: string;
   kategori: string;
   kategori_usia_baru: string;
+  pendidikan: string;
   wus: boolean;
   pus: boolean;
 }
@@ -132,6 +135,7 @@ export async function getAllWarga(): Promise<WargaRow[]> {
       kategori_usia: kategoriUsia(usia),
       kategori: kategori(usia),
       kategori_usia_baru: kategoriUsiaBaru(usia),
+      pendidikan: pendidikanUsia(usia),
       wus: isWUS(r, usia),
       pus: isPUS(r, usia),
     };
@@ -346,6 +350,13 @@ export async function getStats() {
       remaja_b: w.filter((x) => x.kategori_usia_baru === "10-24").length,
       dewasa_b: w.filter((x) => x.kategori_usia_baru === "25-59").length,
       lansia_b: w.filter((x) => x.kategori_usia_baru === "60+").length,
+      pend0_3: w.filter((x) => x.pendidikan === "0-3").length,
+      pend4_6: w.filter((x) => x.pendidikan === "4-6").length,
+      pend7_12: w.filter((x) => x.pendidikan === "7-12").length,
+      pend13_15: w.filter((x) => x.pendidikan === "13-15").length,
+      pend16_18: w.filter((x) => x.pendidikan === "16-18").length,
+      pend19_22: w.filter((x) => x.pendidikan === "19-22").length,
+      pend23: w.filter((x) => x.pendidikan === "23+").length,
       pus: w.filter((x) => x.pus).length,
       wus: w.filter((x) => x.wus).length,
       ibuHamil: w.filter((x) => x.is_hamil).length,
@@ -369,6 +380,13 @@ export async function getStats() {
       remaja_b: a.remaja_b + k.remaja_b,
       dewasa_b: a.dewasa_b + k.dewasa_b,
       lansia_b: a.lansia_b + k.lansia_b,
+      pend0_3: a.pend0_3 + k.pend0_3,
+      pend4_6: a.pend4_6 + k.pend4_6,
+      pend7_12: a.pend7_12 + k.pend7_12,
+      pend13_15: a.pend13_15 + k.pend13_15,
+      pend16_18: a.pend16_18 + k.pend16_18,
+      pend19_22: a.pend19_22 + k.pend19_22,
+      pend23: a.pend23 + k.pend23,
       pus: a.pus + k.pus,
       wus: a.wus + k.wus,
       ibu_hamil: a.ibu_hamil + k.ibuHamil,
@@ -377,6 +395,7 @@ export async function getStats() {
       bangunan: 0, keluarga: 0, individu: 0, laki: 0, perempuan: 0,
       balita: 0, anak: 0, remaja: 0, dewasa: 0, lansia: 0,
       balita_b: 0, anak_b: 0, remaja_b: 0, dewasa_b: 0, lansia_b: 0,
+      pend0_3: 0, pend4_6: 0, pend7_12: 0, pend13_15: 0, pend16_18: 0, pend19_22: 0, pend23: 0,
       pus: 0, wus: 0,
       ibu_hamil: 0,
     }
@@ -398,6 +417,13 @@ export async function getStats() {
     P: aktif.filter((w) => w.kategori_usia_baru === k.range && w.jenis_kelamin === "P").length,
   }));
 
+  const distribusiPendidikan = PENDIDIKAN_LIST.map((k) => ({
+    label: k.range,
+    nama: k.nama,
+    L: aktif.filter((w) => w.pendidikan === k.range && w.jenis_kelamin === "L").length,
+    P: aktif.filter((w) => w.pendidikan === k.range && w.jenis_kelamin === "P").length,
+  }));
+
   return {
     totals: {
       ...total,
@@ -407,6 +433,7 @@ export async function getStats() {
     byKelompok,
     distribusiUsia,
     distribusiKategoriBaru,
+    distribusiPendidikan,
     kbAktif: aktif.filter((w) => w.status_kb && w.status_kb.trim() !== "").length,
   };
 }

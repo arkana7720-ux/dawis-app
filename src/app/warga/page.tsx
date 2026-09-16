@@ -22,9 +22,11 @@ import {
   STATUS_KB_LIST,
   RISIKO_KEHAMILAN_LIST,
   KATEGORI_USIA_BARU_LIST,
+  PENDIDIKAN_LIST,
   formatTanggal,
   hitungUsia,
   labelKategoriUsiaBaru,
+  labelPendidikan,
 } from "@/lib/calc";
 
 interface WargaRow {
@@ -50,6 +52,7 @@ interface WargaRow {
   kategori_usia: string;
   kategori: string;
   kategori_usia_baru: string;
+  pendidikan: string;
   wus: boolean;
   pus: boolean;
 }
@@ -133,6 +136,7 @@ export default function WargaPage() {
   const [fKel, setFKel] = useState("");
   const [fKat, setFKat] = useState("");
   const [fKatBaru, setFKatBaru] = useState("");
+  const [fPend, setFPend] = useState("");
   const [fJk, setFJk] = useState("");
   const [fWus, setFWus] = useState("");
   const [fStatus, setFStatus] = useState<"aktif" | "arsip">("aktif");
@@ -202,12 +206,13 @@ export default function WargaPage() {
       if (fKel && w.kelompok_nama !== fKel) return false;
       if (fKat && w.kategori !== fKat) return false;
       if (fKatBaru && w.kategori_usia_baru !== fKatBaru) return false;
+      if (fPend && w.pendidikan !== fPend) return false;
       if (fJk && w.jenis_kelamin !== fJk) return false;
       if (fWus === "wus" && !w.wus) return false;
       if (fWus === "pus" && !w.pus) return false;
       return true;
     });
-  }, [rows, q, fKel, fKat, fKatBaru, fJk, fWus, fStatus]);
+  }, [rows, q, fKel, fKat, fKatBaru, fPend, fJk, fWus, fStatus]);
 
   const openAdd = () => {
     setForm(emptyForm);
@@ -324,6 +329,21 @@ export default function WargaPage() {
             ? "pink"
             : "red";
 
+  const pendColor = (k: string) =>
+    k === "0-3"
+      ? "slate"
+      : k === "4-6"
+        ? "green"
+        : k === "7-12"
+          ? "blue"
+          : k === "13-15"
+            ? "amber"
+            : k === "16-18"
+              ? "indigo"
+              : k === "19-22"
+                ? "purple"
+                : "orange";
+
   const hubunganColor = (h: string) => {
     const s = (h || "").toLowerCase();
     if (s.includes("krt")) return "green";
@@ -336,11 +356,12 @@ export default function WargaPage() {
     setFKel("");
     setFKat("");
     setFKatBaru("");
+    setFPend("");
     setFJk("");
     setFWus("");
   };
 
-  const hasFilter = q || fKel || fKat || fKatBaru || fJk || fWus;
+  const hasFilter = q || fKel || fKat || fKatBaru || fPend || fJk || fWus;
 
   const formUsia = hitungUsia(form.tanggal_lahir);
   const hamilEligible =
@@ -428,7 +449,7 @@ export default function WargaPage() {
               Ctrl K
             </kbd>
           </div>
-          <div className="hidden gap-2 md:flex">
+          <div className="hidden flex-wrap gap-2 md:flex">
             <select className={`${inputCls} w-44`} value={fKel} onChange={(e) => setFKel(e.target.value)}>
               <option value="">Semua Kelompok</option>
               {struktur.map((k) => (
@@ -444,6 +465,14 @@ export default function WargaPage() {
             <select className={`${inputCls} w-40`} value={fKatBaru} onChange={(e) => setFKatBaru(e.target.value)}>
               <option value="">Kategori Baru</option>
               {KATEGORI_USIA_BARU_LIST.map((k) => (
+                <option key={k.range} value={k.range}>
+                  {k.range}
+                </option>
+              ))}
+            </select>
+            <select className={`${inputCls} w-36`} value={fPend} onChange={(e) => setFPend(e.target.value)}>
+              <option value="">Pendidikan</option>
+              {PENDIDIKAN_LIST.map((k) => (
                 <option key={k.range} value={k.range}>
                   {k.range}
                 </option>
@@ -519,6 +548,14 @@ export default function WargaPage() {
                   </option>
                 ))}
               </select>
+              <select className={inputCls} value={fPend} onChange={(e) => setFPend(e.target.value)}>
+                <option value="">Semua Pendidikan</option>
+                {PENDIDIKAN_LIST.map((k) => (
+                  <option key={k.range} value={k.range}>
+                    {k.range} · {k.nama}
+                  </option>
+                ))}
+              </select>
               <select className={inputCls} value={fJk} onChange={(e) => setFJk(e.target.value)}>
                 <option value="">L & P</option>
                 <option value="L">Laki-laki</option>
@@ -560,6 +597,7 @@ export default function WargaPage() {
                     <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">Usia</th>
                     <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Kategori</th>
                     <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Kategori Baru</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Pendidikan</th>
                     <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">KB</th>
                     <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
                     <th className="px-4 py-3"></th>
@@ -603,6 +641,15 @@ export default function WargaPage() {
                         {w.kategori_usia_baru ? (
                           <Badge color={katBaruColor(w.kategori_usia_baru) as any}>
                             {labelKategoriUsiaBaru(w.usia)}
+                          </Badge>
+                        ) : (
+                          "-"
+                        )}
+                      </td>
+                      <td className="px-3 py-3">
+                        {w.pendidikan ? (
+                          <Badge color={pendColor(w.pendidikan) as any}>
+                            {labelPendidikan(w.usia)}
                           </Badge>
                         ) : (
                           "-"
@@ -706,6 +753,11 @@ export default function WargaPage() {
                       {labelKategoriUsiaBaru(w.usia)}
                     </Badge>
                   )}
+                  {w.pendidikan && (
+                    <Badge color={pendColor(w.pendidikan) as any}>
+                      {labelPendidikan(w.usia)}
+                    </Badge>
+                  )}
                   {fStatus === "aktif" && w.wus && <Badge color="pink" dot>WUS</Badge>}
                   {fStatus === "aktif" && w.pus && <Badge color="rose" dot>PUS</Badge>}
                   {w.status_kb && <Badge color="blue">KB: {w.status_kb}</Badge>}
@@ -777,6 +829,16 @@ export default function WargaPage() {
                   value={
                     <Badge color={katBaruColor(detailRow.kategori_usia_baru) as any}>
                       {labelKategoriUsiaBaru(detailRow.usia)}
+                    </Badge>
+                  }
+                />
+              )}
+              {detailRow.pendidikan && (
+                <InfoRow
+                  label="Pendidikan (Berdasar Usia)"
+                  value={
+                    <Badge color={pendColor(detailRow.pendidikan) as any}>
+                      {labelPendidikan(detailRow.usia)}
                     </Badge>
                   }
                 />
@@ -1094,7 +1156,7 @@ export default function WargaPage() {
         </div>
         {err && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{err}</p>}
         <p className="text-[11px] text-slate-400">
-          Usia, kategori usia, kategori usia baru (0-5/6-9/10-24/25-59/60+), dan status WUS/PUS dihitung otomatis dari tanggal lahir.
+          Usia, kategori usia, kategori usia baru (0-5/6-9/10-24/25-59/60+), pendidikan (0-3/4-6/7-12/13-15/16-18/19-22/23+), dan status WUS/PUS dihitung otomatis dari tanggal lahir.
         </p>
         <div className="flex justify-end gap-2 pt-1">
           <Btn variant="secondary" onClick={() => setModalOpen(false)}>
