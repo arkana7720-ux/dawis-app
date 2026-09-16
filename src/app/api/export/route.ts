@@ -11,6 +11,7 @@ export async function GET() {
     const header = [
       "Kelompok", "Bangunan", "Tipe Bangunan", "Keluarga (KRT)", "Nama",
       "Hubungan", "L/P", "Tanggal Lahir", "Usia", "Kategori Usia", "Kategori",
+      "Kategori Usia Baru",
       "BPJS", "Status KB", "WUS", "PUS",
     ];
     const lines = [header.join(",")];
@@ -19,7 +20,7 @@ export async function GET() {
         [
           w.kelompok_nama, w.bangunan_nama, w.bangunan_tipe, w.keluarga_nama, w.nama,
           w.hubungan, w.jenis_kelamin, w.tanggal_lahir, w.usia ?? "",
-          w.kategori_usia, w.kategori, w.bpjs, w.status_kb,
+          w.kategori_usia, w.kategori, w.kategori_usia_baru, w.bpjs, w.status_kb,
           w.wus ? "WUS" : "Bukan WUS", w.pus ? "PUS" : "Bukan PUS",
         ]
           .map(esc)

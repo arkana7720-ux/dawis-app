@@ -3,6 +3,8 @@ import {
   hitungUsia,
   kategoriUsia,
   kategori,
+  kategoriUsiaBaru,
+  KATEGORI_USIA_BARU_LIST,
   isWUS,
   isPUS,
 } from "./calc";
@@ -46,6 +48,7 @@ export interface WargaRow {
   usia: number | null;
   kategori_usia: string;
   kategori: string;
+  kategori_usia_baru: string;
   wus: boolean;
   pus: boolean;
 }
@@ -128,6 +131,7 @@ export async function getAllWarga(): Promise<WargaRow[]> {
       usia,
       kategori_usia: kategoriUsia(usia),
       kategori: kategori(usia),
+      kategori_usia_baru: kategoriUsiaBaru(usia),
       wus: isWUS(r, usia),
       pus: isPUS(r, usia),
     };
@@ -337,6 +341,11 @@ export async function getStats() {
       remaja: w.filter((x) => x.kategori === "Remaja").length,
       dewasa: w.filter((x) => x.kategori === "Dewasa").length,
       lansia: w.filter((x) => x.kategori === "Lansia").length,
+      balita_b: w.filter((x) => x.kategori_usia_baru === "0-5").length,
+      anak_b: w.filter((x) => x.kategori_usia_baru === "6-9").length,
+      remaja_b: w.filter((x) => x.kategori_usia_baru === "10-24").length,
+      dewasa_b: w.filter((x) => x.kategori_usia_baru === "25-59").length,
+      lansia_b: w.filter((x) => x.kategori_usia_baru === "60+").length,
       pus: w.filter((x) => x.pus).length,
       wus: w.filter((x) => x.wus).length,
       ibuHamil: w.filter((x) => x.is_hamil).length,
@@ -355,13 +364,20 @@ export async function getStats() {
       remaja: a.remaja + k.remaja,
       dewasa: a.dewasa + k.dewasa,
       lansia: a.lansia + k.lansia,
+      balita_b: a.balita_b + k.balita_b,
+      anak_b: a.anak_b + k.anak_b,
+      remaja_b: a.remaja_b + k.remaja_b,
+      dewasa_b: a.dewasa_b + k.dewasa_b,
+      lansia_b: a.lansia_b + k.lansia_b,
       pus: a.pus + k.pus,
       wus: a.wus + k.wus,
       ibu_hamil: a.ibu_hamil + k.ibuHamil,
     }),
     {
       bangunan: 0, keluarga: 0, individu: 0, laki: 0, perempuan: 0,
-      balita: 0, anak: 0, remaja: 0, dewasa: 0, lansia: 0, pus: 0, wus: 0,
+      balita: 0, anak: 0, remaja: 0, dewasa: 0, lansia: 0,
+      balita_b: 0, anak_b: 0, remaja_b: 0, dewasa_b: 0, lansia_b: 0,
+      pus: 0, wus: 0,
       ibu_hamil: 0,
     }
   );
@@ -375,6 +391,13 @@ export async function getStats() {
     P: aktif.filter((w) => w.kategori_usia === label && w.jenis_kelamin === "P").length,
   }));
 
+  const distribusiKategoriBaru = KATEGORI_USIA_BARU_LIST.map((k) => ({
+    label: k.range,
+    nama: k.nama,
+    L: aktif.filter((w) => w.kategori_usia_baru === k.range && w.jenis_kelamin === "L").length,
+    P: aktif.filter((w) => w.kategori_usia_baru === k.range && w.jenis_kelamin === "P").length,
+  }));
+
   return {
     totals: {
       ...total,
@@ -383,6 +406,7 @@ export async function getStats() {
     },
     byKelompok,
     distribusiUsia,
+    distribusiKategoriBaru,
     kbAktif: aktif.filter((w) => w.status_kb && w.status_kb.trim() !== "").length,
   };
 }

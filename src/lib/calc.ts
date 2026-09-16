@@ -96,6 +96,35 @@ export const KATEGORI_USIA_LIST = [
 
 export const KATEGORI_LIST = ["Balita", "Anak", "Remaja", "Dewasa", "Lansia"];
 
+export const KATEGORI_USIA_BARU_LIST: Array<{
+  range: string;
+  nama: string;
+  min: number;
+  max: number | null;
+}> = [
+  { range: "0-5", nama: "Balita", min: 0, max: 5 },
+  { range: "6-9", nama: "Anak", min: 6, max: 9 },
+  { range: "10-24", nama: "Remaja", min: 10, max: 24 },
+  { range: "25-59", nama: "Dewasa", min: 25, max: 59 },
+  { range: "60+", nama: "Lansia", min: 60, max: null },
+];
+
+export function kategoriUsiaBaru(usia: number | null): string {
+  if (usia === null) return "";
+  const k = KATEGORI_USIA_BARU_LIST.find(
+    (x) => usia >= x.min && (x.max === null || usia <= x.max),
+  );
+  return k ? k.range : "";
+}
+
+export function labelKategoriUsiaBaru(usia: number | null): string {
+  if (usia === null) return "";
+  const k = KATEGORI_USIA_BARU_LIST.find(
+    (x) => usia >= x.min && (x.max === null || usia <= x.max),
+  );
+  return k ? `${k.range} · ${k.nama}` : "";
+}
+
 export const HUBUNGAN_LIST = [
   "KRT", "KRT/Ayah", "KRT/Ibu", "KRT/Suami", "KRT/Istri",
   "Ayah", "Ibu", "Suami", "Istri", "Anak", "Anak Perempuan",

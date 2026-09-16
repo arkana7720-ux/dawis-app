@@ -21,8 +21,10 @@ import {
   HUBUNGAN_LIST,
   STATUS_KB_LIST,
   RISIKO_KEHAMILAN_LIST,
+  KATEGORI_USIA_BARU_LIST,
   formatTanggal,
   hitungUsia,
+  labelKategoriUsiaBaru,
 } from "@/lib/calc";
 
 interface WargaRow {
@@ -47,6 +49,7 @@ interface WargaRow {
   usia: number | null;
   kategori_usia: string;
   kategori: string;
+  kategori_usia_baru: string;
   wus: boolean;
   pus: boolean;
 }
@@ -129,6 +132,7 @@ export default function WargaPage() {
   const [q, setQ] = useState("");
   const [fKel, setFKel] = useState("");
   const [fKat, setFKat] = useState("");
+  const [fKatBaru, setFKatBaru] = useState("");
   const [fJk, setFJk] = useState("");
   const [fWus, setFWus] = useState("");
   const [fStatus, setFStatus] = useState<"aktif" | "arsip">("aktif");
@@ -197,12 +201,13 @@ export default function WargaPage() {
       }
       if (fKel && w.kelompok_nama !== fKel) return false;
       if (fKat && w.kategori !== fKat) return false;
+      if (fKatBaru && w.kategori_usia_baru !== fKatBaru) return false;
       if (fJk && w.jenis_kelamin !== fJk) return false;
       if (fWus === "wus" && !w.wus) return false;
       if (fWus === "pus" && !w.pus) return false;
       return true;
     });
-  }, [rows, q, fKel, fKat, fJk, fWus, fStatus]);
+  }, [rows, q, fKel, fKat, fKatBaru, fJk, fWus, fStatus]);
 
   const openAdd = () => {
     setForm(emptyForm);
@@ -308,6 +313,17 @@ export default function WargaPage() {
             ? "indigo"
             : "purple";
 
+  const katBaruColor = (k: string) =>
+    k === "0-5"
+      ? "slate"
+      : k === "6-9"
+        ? "orange"
+        : k === "10-24"
+          ? "rose"
+          : k === "25-59"
+            ? "pink"
+            : "red";
+
   const hubunganColor = (h: string) => {
     const s = (h || "").toLowerCase();
     if (s.includes("krt")) return "green";
@@ -319,11 +335,12 @@ export default function WargaPage() {
     setQ("");
     setFKel("");
     setFKat("");
+    setFKatBaru("");
     setFJk("");
     setFWus("");
   };
 
-  const hasFilter = q || fKel || fKat || fJk || fWus;
+  const hasFilter = q || fKel || fKat || fKatBaru || fJk || fWus;
 
   const formUsia = hitungUsia(form.tanggal_lahir);
   const hamilEligible =
@@ -424,6 +441,14 @@ export default function WargaPage() {
                 <option key={k}>{k}</option>
               ))}
             </select>
+            <select className={`${inputCls} w-40`} value={fKatBaru} onChange={(e) => setFKatBaru(e.target.value)}>
+              <option value="">Kategori Baru</option>
+              {KATEGORI_USIA_BARU_LIST.map((k) => (
+                <option key={k.range} value={k.range}>
+                  {k.range}
+                </option>
+              ))}
+            </select>
             <select className={`${inputCls} w-32`} value={fJk} onChange={(e) => setFJk(e.target.value)}>
               <option value="">L & P</option>
               <option value="L">Laki-laki</option>
@@ -486,6 +511,14 @@ export default function WargaPage() {
                   <option key={k}>{k}</option>
                 ))}
               </select>
+              <select className={inputCls} value={fKatBaru} onChange={(e) => setFKatBaru(e.target.value)}>
+                <option value="">Semua Kategori Baru</option>
+                {KATEGORI_USIA_BARU_LIST.map((k) => (
+                  <option key={k.range} value={k.range}>
+                    {k.range} · {k.nama}
+                  </option>
+                ))}
+              </select>
               <select className={inputCls} value={fJk} onChange={(e) => setFJk(e.target.value)}>
                 <option value="">L & P</option>
                 <option value="L">Laki-laki</option>
@@ -526,6 +559,7 @@ export default function WargaPage() {
                     <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Hubungan</th>
                     <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">Usia</th>
                     <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Kategori</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Kategori Baru</th>
                     <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">KB</th>
                     <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
                     <th className="px-4 py-3"></th>
@@ -561,6 +595,15 @@ export default function WargaPage() {
                       <td className="px-3 py-3">
                         {w.kategori ? (
                           <Badge color={katColor(w.kategori) as any}>{w.kategori}</Badge>
+                        ) : (
+                          "-"
+                        )}
+                      </td>
+                      <td className="px-3 py-3">
+                        {w.kategori_usia_baru ? (
+                          <Badge color={katBaruColor(w.kategori_usia_baru) as any}>
+                            {labelKategoriUsiaBaru(w.usia)}
+                          </Badge>
                         ) : (
                           "-"
                         )}
@@ -658,6 +701,11 @@ export default function WargaPage() {
 
                 <div className="mt-3 flex flex-wrap items-center gap-1.5">
                   {w.kategori && <Badge color={katColor(w.kategori) as any}>{w.kategori}</Badge>}
+                  {w.kategori_usia_baru && (
+                    <Badge color={katBaruColor(w.kategori_usia_baru) as any}>
+                      {labelKategoriUsiaBaru(w.usia)}
+                    </Badge>
+                  )}
                   {fStatus === "aktif" && w.wus && <Badge color="pink" dot>WUS</Badge>}
                   {fStatus === "aktif" && w.pus && <Badge color="rose" dot>PUS</Badge>}
                   {w.status_kb && <Badge color="blue">KB: {w.status_kb}</Badge>}
@@ -723,6 +771,16 @@ export default function WargaPage() {
             <div className="space-y-1.5">
               <InfoRow label="Jenis Kelamin" value={detailRow.jenis_kelamin === "L" ? "Laki-laki" : detailRow.jenis_kelamin === "P" ? "Perempuan" : "-"} />
               <InfoRow label="Tanggal Lahir" value={`${formatTanggal(detailRow.tanggal_lahir)} · ${detailRow.usia ?? "?"} th`} />
+              {detailRow.kategori_usia_baru && (
+                <InfoRow
+                  label="Kategori Usia (Baru)"
+                  value={
+                    <Badge color={katBaruColor(detailRow.kategori_usia_baru) as any}>
+                      {labelKategoriUsiaBaru(detailRow.usia)}
+                    </Badge>
+                  }
+                />
+              )}
               <InfoRow label="Alamat" value={`${detailRow.bangunan_nama} — ${detailRow.kelompok_nama}`} />
               <InfoRow label="Keluarga (KRT)" value={detailRow.keluarga_nama || "-"} />
               <InfoRow label="BPJS / No. Kartu" value={detailRow.bpjs || "-"} />
@@ -1036,7 +1094,7 @@ export default function WargaPage() {
         </div>
         {err && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{err}</p>}
         <p className="text-[11px] text-slate-400">
-          Usia, kategori usia, dan status WUS/PUS dihitung otomatis dari tanggal lahir.
+          Usia, kategori usia, kategori usia baru (0-5/6-9/10-24/25-59/60+), dan status WUS/PUS dihitung otomatis dari tanggal lahir.
         </p>
         <div className="flex justify-end gap-2 pt-1">
           <Btn variant="secondary" onClick={() => setModalOpen(false)}>
