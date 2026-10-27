@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { supabaseKey, supabaseUrl } from "@/lib/supabase";
+import { ambilClaims } from "@/lib/session";
 
 const PUBLIC_PATHS = ["/login", "/register"];
 
@@ -22,22 +23,21 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  // getUser() memvalidasi sesi ke server Supabase (bukan hanya baca cookie).
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Verifikasi JWT secara lokal memakai kunci publik proyek (JWKS di-cache),
+  // jadi tidak perlu memanggil server Auth Supabase setiap request.
+  const claims = await ambilClaims(supabase);
 
   const { pathname } = request.nextUrl;
   const isPublic = PUBLIC_PATHS.includes(pathname);
 
-  if (!user && !isPublic) {
+  if (!claims?.sub && !isPublic) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.search = "";
     return NextResponse.redirect(url);
   }
 
-  if (user && isPublic) {
+  if (claims?.sub && isPublic) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     url.search = "";

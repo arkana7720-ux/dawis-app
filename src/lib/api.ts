@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
 import { getDb } from "./db";
+import { ambilClaims } from "./session";
 
 /** Ambil client database + user yang sedang login untuk Route Handler. */
 export async function withDb() {
   const db = await getDb();
-  const {
-    data: { user },
-  } = await db.auth.getUser();
-  return { db, user };
+  // Verifikasi JWT dilakukan lokal (lihat lib/session.ts) agar tidak ada
+  // perjalanan bolak-balik ke server Auth di setiap request.
+  const claims = await ambilClaims(db);
+  const id = typeof claims?.sub === "string" ? claims.sub : null;
+  return { db, user: id ? { id } : null };
 }
 
 export function unauthorized() {
