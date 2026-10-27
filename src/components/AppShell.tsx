@@ -75,8 +75,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
         fetchApi(url).catch(() => {});
       }
       // Unduh halaman tujuan lebih dulu agar perpindahan menu tidak menunggu.
-      for (const n of NAV) {
-        if (n.href !== pathname) router.prefetch(n.href);
+      for (const href of [...NAV.map((n) => n.href), "/akun"]) {
+        if (href !== pathname) router.prefetch(href);
       }
     };
     const w = window as unknown as {
