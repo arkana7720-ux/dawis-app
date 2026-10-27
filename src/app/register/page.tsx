@@ -74,7 +74,7 @@ export default function RegisterPage() {
       );
     }
 
-    router.replace("/struktur");
+    router.replace("/warga");
     router.refresh();
   };
 

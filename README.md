@@ -39,9 +39,9 @@ Menggantikan Google Sheet "Data Dawis Yusril" dengan database Supabase
 - **Password**: dipilih sendiri saat daftar, minimal 6 karakter. Bisa diubah di
   menu **Akun Saya**.
 - Pendaftaran akun baru dilakukan sendiri oleh masing-masing ibu Dawis lewat
-  halaman **/register**. Setelah daftar, akun baru membuat kelompok, bangunan,
-  dan keluarga lewat **Struktur Wilayah** atau panduan **Persiapan Data Warga**
-  di halaman Data Warga. Datanya terpisah dari akun lain sejak awal.
+  halaman **/register**. Setelah daftar, akun baru langsung diarahkan ke halaman
+  Data Warga dan bisa memakai tombol **Mulai Isi Data Warga** (panduan
+  kelompok → bangunan → keluarga). Datanya terpisah dari akun lain sejak awal.
 - **Admin**: akun dengan `profiles.is_admin = true` mendapat menu **Kelola Akun**
   (`/admin`) untuk mengurus akun ibu Dawis lain. Admin **tidak** bisa melihat
   data warga akun lain — hanya nama, username, dan jumlah datanya.

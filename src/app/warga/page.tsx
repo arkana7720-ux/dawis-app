@@ -711,7 +711,7 @@ export default function WargaPage() {
                   : !strukturLoaded
                     ? "Memuat data keluarga…"
                     : struktur.length === 0
-                      ? "Belum ada kelompok. Mulai dari Struktur Wilayah untuk membuat kelompok, bangunan, dan keluarga."
+                      ? "Belum ada data awal. Lengkapi 3 langkah singkat dulu — kelompok, bangunan, dan keluarga — lalu langsung isi warga."
                       : !hasKeluarga
                         ? "Belum ada keluarga. Lengkapi dulu agar warga bisa ditambahkan."
                         : "Belum ada data warga."
@@ -722,12 +722,18 @@ export default function WargaPage() {
                   Reset Filter
                 </Btn>
               ) : fStatus === "arsip" || !strukturLoaded ? undefined : struktur.length === 0 ? (
-                <Link href="/struktur">
-                  <Btn size="sm">
-                    <Icon name="building" className="h-3.5 w-3.5" />
-                    Buka Struktur Wilayah
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  <Btn size="sm" onClick={() => setWizardOpen(true)}>
+                    <Icon name="plus" className="h-3.5 w-3.5" />
+                    Mulai Isi Data Warga
                   </Btn>
-                </Link>
+                  <Link href="/struktur">
+                    <Btn size="sm" variant="secondary">
+                      <Icon name="building" className="h-3.5 w-3.5" />
+                      Struktur Wilayah
+                    </Btn>
+                  </Link>
+                </div>
               ) : !hasKeluarga ? (
                 <Btn size="sm" onClick={() => setWizardOpen(true)}>
                   <Icon name="plus" className="h-3.5 w-3.5" />
