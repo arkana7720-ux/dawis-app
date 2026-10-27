@@ -14,7 +14,14 @@ Menggantikan Google Sheet "Data Dawis Yusril" dengan database Supabase
 - **Dashboard** — kartu statistik, grafik distribusi usia per jenis kelamin,
   komposisi kategori usia, rekap per kelompok (dihitung otomatis dari data).
 - **Data Warga** — tabel lengkap dengan pencarian & filter (kelompok, kategori
-  usia, jenis kelamin, WUS/PUS), tambah/edit/hapus.
+  usia, jenis kelamin, WUS/PUS), tambah/edit/hapus. Form tambah warga
+  berpanduan: pilih keluarga lewat pencarian (atau buat keluarga/bangunan baru
+  langsung dari form), tanggal lahir boleh hanya tahun, ada peringatan nama
+  ganda, dan tombol **Simpan & Tambah Lagi**.
+- **Panduan akun baru** — akun yang belum punya data dibimbing lewat
+  **Persiapan Data Warga** (Kelompok → Bangunan → Keluarga) di halaman Data
+  Warga, lalu langsung mengisi warga. Tidak perlu impor Excel. Dashboard juga
+  menampilkan checklist **Persiapan Awal** sampai keempat langkah selesai.
 - **Struktur Wilayah** — kelola hierarki Kelompok → Bangunan → Keluarga (KRT)
   → Anggota. Bangunan bisa ditandai milik sendiri / kontrakan.
 - **Laporan** — rekapitulasi format mirip sheet lama, siap cetak dan ekspor
@@ -32,7 +39,9 @@ Menggantikan Google Sheet "Data Dawis Yusril" dengan database Supabase
 - **Password**: dipilih sendiri saat daftar, minimal 6 karakter. Bisa diubah di
   menu **Akun Saya**.
 - Pendaftaran akun baru dilakukan sendiri oleh masing-masing ibu Dawis lewat
-  halaman **/register**.
+  halaman **/register**. Setelah daftar, akun baru membuat kelompok, bangunan,
+  dan keluarga lewat **Struktur Wilayah** atau panduan **Persiapan Data Warga**
+  di halaman Data Warga. Datanya terpisah dari akun lain sejak awal.
 - **Admin**: akun dengan `profiles.is_admin = true` mendapat menu **Kelola Akun**
   (`/admin`) untuk mengurus akun ibu Dawis lain. Admin **tidak** bisa melihat
   data warga akun lain — hanya nama, username, dan jumlah datanya.
