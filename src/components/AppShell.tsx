@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 import { Icon } from "@/components/ui";
 import { fetchApi, subscribeApi } from "@/lib/clientApi";
@@ -34,6 +34,7 @@ function inisial(nama: string, username: string): string {
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [me, setMe] = useState<Me | null>(null);
 
   const isAuthPage = AUTH_PAGES.has(pathname);
@@ -60,8 +61,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
     };
   }, [isAuthPage]);
 
-  // Panaskan data yang paling sering dibuka supaya klik menu terasa instan.
-  // Dilewati kalau pengguna menghemat kuota atau jaringan sangat lambat.
+  // Panaskan data dan halaman yang paling sering dibuka supaya klik menu
+  // terasa instan. Dilewati kalau pengguna menghemat kuota atau jaringan lambat.
   useEffect(() => {
     if (isAuthPage || !me) return;
     const conn = (navigator as unknown as {
@@ -73,6 +74,10 @@ export default function AppShell({ children }: { children: ReactNode }) {
       for (const url of ["/api/stats", "/api/warga", "/api/bangunan"]) {
         fetchApi(url).catch(() => {});
       }
+      // Unduh halaman tujuan lebih dulu agar perpindahan menu tidak menunggu.
+      for (const n of NAV) {
+        if (n.href !== pathname) router.prefetch(n.href);
+      }
     };
     const w = window as unknown as {
       requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
@@ -83,7 +88,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
     }
     const t = setTimeout(mulai, 1500);
     return () => clearTimeout(t);
-  }, [isAuthPage, me]);
+  }, [isAuthPage, me, pathname, router]);
 
   if (isAuthPage) return <>{children}</>;
 
