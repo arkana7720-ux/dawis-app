@@ -1,6 +1,7 @@
 "use client";
 
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Avatar,
   Badge,
@@ -16,17 +17,24 @@ import {
   PageHeader,
   Skeleton,
   Spinner,
+  Toast,
 } from "@/components/ui";
 import {
-  HUBUNGAN_LIST,
-  STATUS_KB_LIST,
-  RISIKO_KEHAMILAN_LIST,
+  KeluargaPicker,
+  type PickerKelompok,
+} from "@/components/KeluargaPicker";
+import {
+  WargaFields,
+  emptyWargaValues,
+} from "@/components/WargaFields";
+import { TambahWargaWizard } from "@/components/TambahWargaWizard";
+import {
   KATEGORI_USIA_BARU_LIST,
   PENDIDIKAN_LIST,
   formatTanggal,
-  hitungUsia,
   labelKategoriUsiaBaru,
   labelPendidikan,
+  validasiWarga,
 } from "@/lib/calc";
 
 interface WargaRow {
@@ -57,30 +65,12 @@ interface WargaRow {
   pus: boolean;
 }
 
-interface StrukturNode {
-  id: number;
-  nama: string;
-  kode: string;
-  bangunan: Array<{
-    id: number;
-    nama: string;
-    keluarga: Array<{ id: number; nama_krt: string; catatan: string }>;
-  }>;
-}
+type StrukturNode = PickerKelompok;
 
 const emptyForm = {
   id: 0,
   keluarga_id: "",
-  nama: "",
-  hubungan: "",
-  jenis_kelamin: "",
-  tanggal_lahir: "",
-  bpjs: "",
-  status_kb: "",
-  catatan: "",
-  is_hamil: false,
-  hpl_kehamilan: "",
-  risiko_kehamilan: "normal",
+  ...emptyWargaValues,
 };
 
 const CHIPS = [
@@ -152,6 +142,13 @@ export default function WargaPage() {
   const [stErr, setStErr] = useState("");
   const [menuFor, setMenuFor] = useState<number | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [dupWarn, setDupWarn] = useState("");
+  const [toast, setToast] = useState<{ msg: string; showReset?: boolean } | null>(null);
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [lastKeluargaId, setLastKeluargaId] = useState<number | null>(null);
+  const [formKey, setFormKey] = useState(0);
+  const [strukturLoaded, setStrukturLoaded] = useState(false);
 
   const load = () => {
     setLoadErr("");
@@ -164,13 +161,23 @@ export default function WargaPage() {
       .catch((e) => setLoadErr(e.message));
   };
 
-  useEffect(() => {
-    load();
+  const loadStruktur = () =>
     fetch("/api/bangunan")
       .then((r) => r.json())
       .then(setStruktur)
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setStrukturLoaded(true));
+
+  useEffect(() => {
+    load();
+    loadStruktur();
   }, []);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 6000);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
@@ -214,9 +221,50 @@ export default function WargaPage() {
     });
   }, [rows, q, fKel, fKat, fKatBaru, fPend, fJk, fWus, fStatus]);
 
+  const flatKeluarga = useMemo(
+    () =>
+      struktur.flatMap((k) =>
+        k.bangunan.flatMap((b) =>
+          b.keluarga.map((f) => ({
+            ...f,
+            bangunan: b.nama,
+            kelompok: k.nama,
+          }))
+        )
+      ),
+    [struktur]
+  );
+
+  const hasKeluarga = flatKeluarga.length > 0;
+
+  const keluargaKosong = (id: string) => {
+    const f = flatKeluarga.find((x) => String(x.id) === id);
+    return !!f && (f.anggota?.length ?? 0) === 0;
+  };
+
   const openAdd = () => {
+    if (!strukturLoaded) {
+      setToast({ msg: "Sedang memuat data keluarga. Coba lagi sebentar." });
+      return;
+    }
     setForm(emptyForm);
     setErr("");
+    setErrors({});
+    setDupWarn("");
+    setFormKey((k) => k + 1);
+    if (!hasKeluarga) {
+      setWizardOpen(true);
+      return;
+    }
+    const fid =
+      lastKeluargaId && flatKeluarga.some((f) => f.id === lastKeluargaId)
+        ? String(lastKeluargaId)
+        : "";
+    setForm({
+      ...emptyForm,
+      keluarga_id: fid,
+      hubungan: fid && keluargaKosong(fid) ? "KRT" : "",
+    });
     setModalOpen(true);
   };
 
@@ -236,12 +284,50 @@ export default function WargaPage() {
       risiko_kehamilan: w.risiko_kehamilan || "normal",
     });
     setErr("");
+    setErrors({});
+    setDupWarn("");
+    setFormKey((k) => k + 1);
     setModalOpen(true);
   };
 
-  const save = async () => {
-    if (!form.nama.trim()) return setErr("Nama wajib diisi");
-    if (!form.keluarga_id) return setErr("Keluarga/bangunan wajib dipilih");
+  const pilihKeluarga = (id: string) => {
+    setForm((f) => ({
+      ...f,
+      keluarga_id: id,
+      hubungan: f.hubungan || (keluargaKosong(id) ? "KRT" : ""),
+    }));
+    setErrors((e) => {
+      const next = { ...e };
+      delete next.keluarga_id;
+      return next;
+    });
+  };
+
+  const save = async (andAnother = false, force = false) => {
+    const next = validasiWarga(form);
+    if (!form.keluarga_id) next.keluarga_id = "Pilih keluarga dulu.";
+    setErrors(next);
+    if (Object.keys(next).length > 0) {
+      setErr("Periksa kembali kolom yang ditandai merah.");
+      return;
+    }
+    setErr("");
+
+    if (!form.id && !force) {
+      const dup = rows?.find(
+        (r) =>
+          r.keluarga_id === Number(form.keluarga_id) &&
+          r.nama.trim().toLowerCase() === form.nama.trim().toLowerCase()
+      );
+      if (dup) {
+        setDupWarn(
+          `"${form.nama.trim()}" sudah terdaftar di keluarga ini. Periksa dulu apakah ini orang yang sama.`
+        );
+        return;
+      }
+    }
+    setDupWarn("");
+
     setSaving(true);
     const res = await fetch(form.id ? `/api/warga/${form.id}` : "/api/warga", {
       method: form.id ? "PUT" : "POST",
@@ -251,10 +337,30 @@ export default function WargaPage() {
     setSaving(false);
     if (!res.ok) {
       const j = await res.json().catch(() => ({}));
+      if (j.fields) setErrors(j.fields);
       return setErr(j.error || "Gagal menyimpan");
     }
-    setModalOpen(false);
-    load();
+
+    setLastKeluargaId(Number(form.keluarga_id));
+    const hidden = Boolean(hasFilter) || fStatus === "arsip";
+    setToast({ msg: `Data ${form.nama.trim()} berhasil disimpan.`, showReset: hidden });
+
+    if (andAnother && !form.id) {
+      setForm({
+        ...emptyForm,
+        keluarga_id: form.keluarga_id,
+        hubungan: keluargaKosong(form.keluarga_id) ? "KRT" : "",
+      });
+      setErrors({});
+      setDupWarn("");
+      setErr("");
+      setFormKey((k) => k + 1);
+      load();
+      setTimeout(() => document.getElementById("warga-nama")?.focus(), 80);
+    } else {
+      setModalOpen(false);
+      load();
+    }
   };
 
   const hapus = async (w: WargaRow) => {
@@ -363,10 +469,6 @@ export default function WargaPage() {
 
   const hasFilter = q || fKel || fKat || fKatBaru || fPend || fJk || fWus;
 
-  const formUsia = hitungUsia(form.tanggal_lahir);
-  const hamilEligible =
-    form.jenis_kelamin === "P" && ((formUsia !== null && formUsia >= 15 && formUsia <= 49) || form.is_hamil);
-
   if (loadErr) return <ErrorState message={loadErr} onRetry={load} />;
 
   if (!rows)
@@ -442,7 +544,7 @@ export default function WargaPage() {
               <input
                 ref={searchRef}
                 className={`${inputCls} pl-10 pr-16`}
-                placeholder="Cari nama, NIK, atau bangunan..."
+                placeholder="Cari nama, keluarga, atau bangunan..."
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
               />
@@ -601,13 +703,42 @@ export default function WargaPage() {
       {filtered.length === 0 ? (
         <Card>
           <EmptyState
-            message={hasFilter ? "Tidak ada data yang cocok dengan filter." : fStatus === "arsip" ? "Belum ada warga dalam arsip." : "Belum ada data warga."}
+            message={
+              hasFilter
+                ? "Tidak ada data yang cocok dengan filter."
+                : fStatus === "arsip"
+                  ? "Belum ada warga dalam arsip."
+                  : !strukturLoaded
+                    ? "Memuat data keluarga…"
+                    : struktur.length === 0
+                      ? "Belum ada kelompok. Mulai dari Struktur Wilayah untuk membuat kelompok, bangunan, dan keluarga."
+                      : !hasKeluarga
+                        ? "Belum ada keluarga. Lengkapi dulu agar warga bisa ditambahkan."
+                        : "Belum ada data warga."
+            }
             action={
               hasFilter ? (
                 <Btn variant="secondary" size="sm" onClick={resetFilter}>
                   Reset Filter
                 </Btn>
-              ) : undefined
+              ) : fStatus === "arsip" || !strukturLoaded ? undefined : struktur.length === 0 ? (
+                <Link href="/struktur">
+                  <Btn size="sm">
+                    <Icon name="building" className="h-3.5 w-3.5" />
+                    Buka Struktur Wilayah
+                  </Btn>
+                </Link>
+              ) : !hasKeluarga ? (
+                <Btn size="sm" onClick={() => setWizardOpen(true)}>
+                  <Icon name="plus" className="h-3.5 w-3.5" />
+                  Lengkapi Data Keluarga
+                </Btn>
+              ) : (
+                <Btn size="sm" onClick={openAdd}>
+                  <Icon name="plus" className="h-3.5 w-3.5" />
+                  Tambah Warga Pertama
+                </Btn>
+              )
             }
           />
         </Card>
@@ -872,7 +1003,7 @@ export default function WargaPage() {
               )}
               <InfoRow label="Alamat" value={`${detailRow.bangunan_nama} — ${detailRow.kelompok_nama}`} />
               <InfoRow label="Keluarga (KRT)" value={detailRow.keluarga_nama || "-"} />
-              <InfoRow label="BPJS / No. Kartu" value={detailRow.bpjs || "-"} />
+              <InfoRow label="No. BPJS" value={detailRow.bpjs || "-"} />
               <InfoRow label="Status KB" value={detailRow.status_kb || "Tidak KB"} />
               {detailRow.is_hamil && (
                 <>
@@ -1022,179 +1153,124 @@ export default function WargaPage() {
         title={form.id ? "Edit Data Warga" : "Tambah Warga"}
         wide
       >
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="sm:col-span-2">
-            <Field label="Keluarga (Bangunan)" required>
-              <select
-                className={inputCls}
-                value={form.keluarga_id}
-                onChange={(e) => setForm({ ...form, keluarga_id: e.target.value })}
-              >
-                <option value="">— Pilih keluarga —</option>
-                {struktur.map((k) => (
-                  <optgroup key={k.id} label={k.nama}>
-                    {k.bangunan.map((b) => (
-                      <Fragment key={b.id}>
-                        {b.keluarga.length === 0 && (
-                          <option disabled value="">
-                            (belum ada keluarga)
-                          </option>
-                        )}
-                        {b.keluarga.map((f) => (
-                          <option key={f.id} value={f.id}>
-                            {b.nama} → {f.nama_krt}
-                          </option>
-                        ))}
-                      </Fragment>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
-            </Field>
-          </div>
-          <Field label="Nama Lengkap" required>
-            <input
-              className={inputCls}
-              value={form.nama}
-              onChange={(e) => setForm({ ...form, nama: e.target.value })}
-            />
-          </Field>
-          <Field label="Hubungan dalam Keluarga">
-            <select
-              className={inputCls}
-              value={form.hubungan}
-              onChange={(e) => setForm({ ...form, hubungan: e.target.value })}
-            >
-              <option value="">— Pilih —</option>
-              {HUBUNGAN_LIST.map((h) => (
-                <option key={h}>{h}</option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Jenis Kelamin">
-            <select
-              className={inputCls}
-              value={form.jenis_kelamin}
-              onChange={(e) => setForm({ ...form, jenis_kelamin: e.target.value })}
-            >
-              <option value="">— Pilih —</option>
-              <option value="L">Laki-laki</option>
-              <option value="P">Perempuan</option>
-            </select>
-          </Field>
-          <Field label="Tanggal Lahir">
-            {/^\d{4}$/.test(form.tanggal_lahir) ? (
-              <>
-                <input
-                  className={inputCls}
-                  value={form.tanggal_lahir}
-                  onChange={(e) => setForm({ ...form, tanggal_lahir: e.target.value })}
-                />
-                <p className="mt-1 text-[11px] text-amber-600">
-                  Data lama hanya menyimpan tahun lahir. Biarkan apa adanya atau isi lengkap
-                  (format TTTT-BB-HH).
-                </p>
-              </>
-            ) : (
-              <input
-                type="date"
-                className={inputCls}
-                value={/^\d{4}-\d{2}-\d{2}$/.test(form.tanggal_lahir) ? form.tanggal_lahir : ""}
-                onChange={(e) => setForm({ ...form, tanggal_lahir: e.target.value })}
-              />
-            )}
-          </Field>
-          <Field label="BPJS / No. Kartu">
-            <input
-              className={inputCls}
-              value={form.bpjs}
-              onChange={(e) => setForm({ ...form, bpjs: e.target.value })}
-            />
-          </Field>
-          <Field label="Status KB">
-            <select
-              className={inputCls}
-              value={form.status_kb}
-              onChange={(e) => setForm({ ...form, status_kb: e.target.value })}
-            >
-              {STATUS_KB_LIST.map((s) => (
-                <option key={s || "-"} value={s}>
-                  {s || "— Tidak KB —"}
-                </option>
-              ))}
-            </select>
-          </Field>
+        {err && (
+          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-600">{err}</p>
+        )}
 
-          {hamilEligible && (
-            <div className="rounded-xl bg-rose-50/70 p-3.5 ring-1 ring-inset ring-rose-100 sm:col-span-2">
-              <label className="flex cursor-pointer items-center justify-between gap-3">
-                <span className="min-w-0">
-                  <span className="block text-sm font-bold text-slate-700">🤰 Sedang Hamil</span>
-                  <span className="block text-xs text-slate-400">
-                    Aktifkan untuk tracking kehamilan ibu ini
-                  </span>
-                </span>
-                <input
-                  type="checkbox"
-                  className="peer sr-only"
-                  checked={form.is_hamil}
-                  onChange={(e) => setForm({ ...form, is_hamil: e.target.checked })}
-                />
-                <span className="relative h-6 w-11 shrink-0 rounded-full bg-slate-200 transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:bg-emerald-500 peer-checked:after:translate-x-5" />
-              </label>
-              {form.is_hamil && (
-                <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  <Field label="Perkiraan Lahir / HPL">
-                    <input
-                      type="date"
-                      className={inputCls}
-                      value={/^\d{4}-\d{2}-\d{2}$/.test(form.hpl_kehamilan) ? form.hpl_kehamilan : ""}
-                      onChange={(e) => setForm({ ...form, hpl_kehamilan: e.target.value })}
-                    />
-                  </Field>
-                  <Field label="Risiko Kehamilan">
-                    <select
-                      className={inputCls}
-                      value={form.risiko_kehamilan}
-                      onChange={(e) => setForm({ ...form, risiko_kehamilan: e.target.value })}
-                    >
-                      {RISIKO_KEHAMILAN_LIST.map((r) => (
-                        <option key={r} value={r}>
-                          {r === "normal" ? "Normal" : "Risiko Tinggi"}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
-                </div>
-              )}
+        <KeluargaPicker
+          struktur={struktur}
+          value={form.keluarga_id}
+          onChange={pilihKeluarga}
+          onCreated={(id) => {
+            loadStruktur();
+            setForm((f) => ({
+              ...f,
+              keluarga_id: String(id),
+              hubungan: f.hubungan || "KRT",
+            }));
+            setErrors((e) => {
+              const n = { ...e };
+              delete n.keluarga_id;
+              return n;
+            });
+          }}
+          error={errors.keluarga_id}
+          lastUsedId={lastKeluargaId}
+        />
+
+        <WargaFields
+          key={`${form.id}-${formKey}`}
+          value={form}
+          onChange={(v) => {
+            const berubah = (["nama", "jenis_kelamin", "tanggal_lahir"] as const).filter(
+              (k) => v[k] !== form[k]
+            );
+            setForm((f) => ({ ...f, ...v }));
+            if (berubah.length > 0) {
+              setErrors((e) => {
+                const nextErrors = { ...e };
+                berubah.forEach((k) => delete nextErrors[k]);
+                return nextErrors;
+              });
+              setErr("");
+            }
+          }}
+          errors={errors}
+        />
+
+        {dupWarn && (
+          <div className="rounded-xl bg-amber-50 px-3.5 py-3 ring-1 ring-inset ring-amber-200">
+            <p className="text-xs font-medium leading-relaxed text-amber-800">{dupWarn}</p>
+            <div className="mt-2 flex gap-2">
+              <Btn size="sm" onClick={() => save(false, true)} disabled={saving}>
+                Tetap Simpan
+              </Btn>
+              <Btn size="sm" variant="secondary" onClick={() => setDupWarn("")}>
+                Batal
+              </Btn>
             </div>
-          )}
-
-          <div className="sm:col-span-2">
-            <Field label="Catatan">
-              <textarea
-                className={inputCls}
-                rows={2}
-                value={form.catatan}
-                onChange={(e) => setForm({ ...form, catatan: e.target.value })}
-              />
-            </Field>
           </div>
-        </div>
-        {err && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{err}</p>}
-        <p className="text-[11px] text-slate-400">
-          Usia, kategori usia, kategori usia baru (0-5/6-9/10-24/25-59/60+), pendidikan (0-3/4-6/7-12/13-15/16-18/19-22/23+), dan status WUS/PUS dihitung otomatis dari tanggal lahir.
+        )}
+
+        <p className="text-[11px] leading-relaxed text-slate-400">
+          Usia, kategori usia, kategori usia baru (0-5/6-9/10-24/25-59/60+), pendidikan
+          (0-3/4-6/7-12/13-15/16-18/19-22/23+), dan status WUS/PUS dihitung otomatis dari
+          tanggal lahir.
         </p>
-        <div className="flex justify-end gap-2 pt-1">
+        <div className="flex flex-wrap justify-end gap-2 pt-1">
           <Btn variant="secondary" onClick={() => setModalOpen(false)}>
             Batal
           </Btn>
-          <Btn onClick={save} disabled={saving}>
+          {!form.id && (
+            <Btn variant="secondary" onClick={() => save(true)} disabled={saving}>
+              Simpan &amp; Tambah Lagi
+            </Btn>
+          )}
+          <Btn onClick={() => save(false)} disabled={saving}>
             {saving && <Spinner className="h-3.5 w-3.5" />}
             {saving ? "Menyimpan..." : "Simpan"}
           </Btn>
         </div>
       </Modal>
+
+      <TambahWargaWizard
+        open={wizardOpen}
+        onClose={() => setWizardOpen(false)}
+        struktur={struktur}
+        onDone={(fid) => {
+          setWizardOpen(false);
+          loadStruktur();
+          setLastKeluargaId(fid);
+          setForm({ ...emptyForm, keluarga_id: String(fid), hubungan: "KRT" });
+          setErrors({});
+          setErr("");
+          setDupWarn("");
+          setFormKey((k) => k + 1);
+          setModalOpen(true);
+        }}
+      />
+
+      {toast && (
+        <Toast
+          message={toast.msg}
+          onClose={() => setToast(null)}
+          action={
+            toast.showReset ? (
+              <button
+                type="button"
+                onClick={() => {
+                  resetFilter();
+                  setFStatus("aktif");
+                  setToast(null);
+                }}
+                className="shrink-0 rounded-lg bg-white/15 px-2.5 py-1.5 text-xs font-bold text-white transition-colors hover:bg-white/25"
+              >
+                Tampilkan
+              </button>
+            ) : undefined
+          }
+        />
+      )}
     </>
   );
 }

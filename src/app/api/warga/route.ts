@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAllWarga, createWarga } from "@/lib/repo";
-import { parseTanggalLahir } from "@/lib/calc";
+import { parseTanggalLahir, validasiWarga } from "@/lib/calc";
 import { fail, unauthorized, withDb } from "@/lib/api";
 
 export async function GET() {
@@ -18,16 +18,20 @@ export async function POST(req: Request) {
   if (!user) return unauthorized();
 
   const body = await req.json();
-  if (!body.keluarga_id)
-    return NextResponse.json({ error: "Keluarga wajib dipilih" }, { status: 400 });
-  if (!body.nama?.trim())
-    return NextResponse.json({ error: "Nama wajib diisi" }, { status: 400 });
+  const fields = validasiWarga(body);
+  if (!body.keluarga_id) fields.keluarga_id = "Keluarga wajib dipilih.";
+  if (Object.keys(fields).length > 0)
+    return NextResponse.json(
+      { error: Object.values(fields)[0], fields },
+      { status: 400 }
+    );
+
   try {
     const id = await createWarga(db, {
       keluarga_id: Number(body.keluarga_id),
       nama: body.nama.trim(),
       hubungan: body.hubungan?.trim() || "",
-      jenis_kelamin: body.jenis_kelamin || "",
+      jenis_kelamin: String(body.jenis_kelamin).toUpperCase(),
       tanggal_lahir: parseTanggalLahir(body.tanggal_lahir),
       bpjs: body.bpjs?.trim() || "",
       status_kb: body.status_kb?.trim() || "",

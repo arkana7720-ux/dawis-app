@@ -177,3 +177,49 @@ export function formatTanggal(ttl?: string | null): string {
   const bulan = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
   return `${parseInt(m[3], 10)}-${bulan[parseInt(m[2], 10) - 1]}-${m[1]}`;
 }
+
+/**
+ * Validasi data inti warga. Dipakai bersama oleh form (client) dan API (server)
+ * supaya aturannya tidak pernah berbeda.
+ */
+export function validasiWarga(v: {
+  nama?: string | null;
+  jenis_kelamin?: string | null;
+  tanggal_lahir?: string | null;
+}): Record<string, string> {
+  const errors: Record<string, string> = {};
+
+  if (!(v.nama || "").trim()) {
+    errors.nama = "Nama lengkap wajib diisi.";
+  }
+
+  const jk = (v.jenis_kelamin || "").toUpperCase();
+  if (!jk) {
+    errors.jenis_kelamin = "Pilih laki-laki atau perempuan.";
+  } else if (jk !== "L" && jk !== "P") {
+    errors.jenis_kelamin = "Jenis kelamin tidak valid.";
+  }
+
+  const tgl = parseTanggalLahir(v.tanggal_lahir);
+  const tahunIni = new Date().getFullYear();
+  if (!tgl) {
+    errors.tanggal_lahir = "Tanggal lahir wajib diisi — boleh hanya tahunnya.";
+  } else if (/^\d{4}$/.test(tgl)) {
+    const tahun = parseInt(tgl, 10);
+    if (tahun < 1900 || tahun > tahunIni) {
+      errors.tanggal_lahir = `Tahun lahir harus antara 1900 dan ${tahunIni}.`;
+    }
+  } else if (/^\d{4}-\d{2}-\d{2}$/.test(tgl)) {
+    const [y, m, d] = tgl.split("-").map((x) => parseInt(x, 10));
+    const cek = new Date(y, m - 1, d);
+    const valid =
+      cek.getFullYear() === y && cek.getMonth() === m - 1 && cek.getDate() === d;
+    if (!valid || y < 1900 || y > tahunIni) {
+      errors.tanggal_lahir = "Tanggal lahir tidak valid.";
+    }
+  } else {
+    errors.tanggal_lahir = "Format tanggal lahir tidak dikenali.";
+  }
+
+  return errors;
+}

@@ -16,7 +16,8 @@ import {
   Skeleton,
   Spinner,
 } from "@/components/ui";
-import { HUBUNGAN_LIST, STATUS_KB_LIST } from "@/lib/calc";
+import { validasiWarga } from "@/lib/calc";
+import { WargaFields, emptyWargaValues } from "@/components/WargaFields";
 
 interface Anggota {
   id: number;
@@ -28,6 +29,9 @@ interface Anggota {
   status_kb: string;
   catatan: string;
   usia: number | null;
+  is_hamil?: boolean;
+  hpl_kehamilan?: string;
+  risiko_kehamilan?: string;
 }
 interface KeluargaNode extends Anggota {
   id: number;
@@ -53,13 +57,7 @@ interface KelompokNode {
 const emptyWarga = {
   id: 0,
   keluarga_id: "",
-  nama: "",
-  hubungan: "",
-  jenis_kelamin: "",
-  tanggal_lahir: "",
-  bpjs: "",
-  status_kb: "",
-  catatan: "",
+  ...emptyWargaValues,
 };
 
 export default function StrukturPage() {
@@ -71,6 +69,8 @@ export default function StrukturPage() {
   const [wrgModal, setWrgModal] = useState({ ...emptyWarga, open: false });
   const [tab, setTab] = useState<number | null>(null);
   const [err, setErr] = useState("");
+  const [wrgErrors, setWrgErrors] = useState<Record<string, string>>({});
+  const [savingWarga, setSavingWarga] = useState(false);
 
   const load = () => {
     setLoadErr("");
@@ -146,18 +146,34 @@ export default function StrukturPage() {
   };
 
   const saveWarga = async () => {
-    if (!wrgModal.nama.trim()) return setErr("Nama wajib diisi");
-    if (!wrgModal.keluarga_id) return setErr("Keluarga tidak valid");
-    const ok = await saveJson(
-      wrgModal.id ? `/api/warga/${wrgModal.id}` : "/api/warga",
-      wrgModal.id ? "PUT" : "POST",
-      { ...wrgModal, keluarga_id: Number(wrgModal.keluarga_id) }
-    );
-    if (ok) {
-      setWrgModal({ ...emptyWarga, open: false });
-      setErr("");
-      load();
+    const next = validasiWarga(wrgModal);
+    if (!wrgModal.keluarga_id) next.keluarga_id = "Keluarga tidak valid.";
+    setWrgErrors(next);
+    if (Object.keys(next).length > 0) {
+      setErr("Periksa kembali kolom yang ditandai merah.");
+      return;
     }
+    setErr("");
+    setSavingWarga(true);
+    const res = await fetch(
+      wrgModal.id ? `/api/warga/${wrgModal.id}` : "/api/warga",
+      {
+        method: wrgModal.id ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...wrgModal, keluarga_id: Number(wrgModal.keluarga_id) }),
+      }
+    );
+    setSavingWarga(false);
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({}));
+      if (j.fields) setWrgErrors(j.fields);
+      setErr(j.error || "Gagal menyimpan");
+      return;
+    }
+    setWrgModal({ ...emptyWarga, open: false });
+    setWrgErrors({});
+    setErr("");
+    load();
   };
 
   const hapus = async (url: string, label: string) => {
@@ -181,6 +197,14 @@ export default function StrukturPage() {
     );
 
   const active = data.find((k) => k.id === tab) ?? data[0];
+
+  const keluargaAktif = data
+    .flatMap((k) =>
+      k.bangunan.flatMap((b) =>
+        b.keluarga.map((f) => ({ ...f, bangunan: b.nama, kelompok: k.nama }))
+      )
+    )
+    .find((f) => String(f.id) === wrgModal.keluarga_id);
 
   return (
     <>
@@ -313,7 +337,16 @@ export default function StrukturPage() {
                             <div className="flex gap-0.5 opacity-60 transition-opacity group-hover/f:opacity-100">
                               <button
                                 className="rounded-lg px-2 py-1 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-50"
-                                onClick={() => { setErr(""); setWrgModal({ ...emptyWarga, open: true, keluarga_id: String(f.id) }); }}
+                                onClick={() => {
+                                  setErr("");
+                                  setWrgErrors({});
+                                  setWrgModal({
+                                    ...emptyWarga,
+                                    open: true,
+                                    keluarga_id: String(f.id),
+                                    hubungan: (f.anggota?.length ?? 0) === 0 ? "KRT" : "",
+                                  });
+                                }}
                               >
                                 + Anggota
                               </button>
@@ -351,7 +384,25 @@ export default function StrukturPage() {
                                     <IconBtn
                                       icon="edit"
                                       title="Edit"
-                                      onClick={() => { setErr(""); setWrgModal({ open: true, id: a.id, keluarga_id: String(f.id), nama: a.nama, hubungan: a.hubungan, jenis_kelamin: a.jenis_kelamin, tanggal_lahir: a.tanggal_lahir, bpjs: a.bpjs, status_kb: a.status_kb, catatan: a.catatan || "" }); }}
+                                      onClick={() => {
+                                        setErr("");
+                                        setWrgErrors({});
+                                        setWrgModal({
+                                          open: true,
+                                          id: a.id,
+                                          keluarga_id: String(f.id),
+                                          nama: a.nama,
+                                          hubungan: a.hubungan,
+                                          jenis_kelamin: a.jenis_kelamin,
+                                          tanggal_lahir: a.tanggal_lahir,
+                                          bpjs: a.bpjs,
+                                          status_kb: a.status_kb,
+                                          catatan: a.catatan || "",
+                                          is_hamil: !!a.is_hamil,
+                                          hpl_kehamilan: a.hpl_kehamilan || "",
+                                          risiko_kehamilan: a.risiko_kehamilan || "normal",
+                                        });
+                                      }}
                                     />
                                     <IconBtn
                                       icon="trash"
@@ -452,61 +503,46 @@ export default function StrukturPage() {
         </div>
       </Modal>
 
-      <Modal open={wrgModal.open} onClose={() => setWrgModal({ ...emptyWarga, open: false })} title={wrgModal.id ? "Edit Anggota" : "Tambah Anggota"} wide>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Nama Lengkap" required>
-            <input className={inputCls} value={wrgModal.nama} onChange={(e) => setWrgModal({ ...wrgModal, nama: e.target.value })} />
-          </Field>
-          <Field label="Hubungan">
-            <select className={inputCls} value={wrgModal.hubungan} onChange={(e) => setWrgModal({ ...wrgModal, hubungan: e.target.value })}>
-              <option value="">— Pilih —</option>
-              {HUBUNGAN_LIST.map((h) => <option key={h}>{h}</option>)}
-            </select>
-          </Field>
-          <Field label="Jenis Kelamin">
-            <select className={inputCls} value={wrgModal.jenis_kelamin} onChange={(e) => setWrgModal({ ...wrgModal, jenis_kelamin: e.target.value })}>
-              <option value="">— Pilih —</option>
-              <option value="L">Laki-laki</option>
-              <option value="P">Perempuan</option>
-            </select>
-          </Field>
-          <Field label="Tanggal Lahir">
-            {/^\d{4}$/.test(wrgModal.tanggal_lahir) ? (
-              <>
-                <input
-                  className={inputCls}
-                  value={wrgModal.tanggal_lahir}
-                  onChange={(e) => setWrgModal({ ...wrgModal, tanggal_lahir: e.target.value })}
-                />
-                <p className="mt-1 text-[11px] text-amber-600">
-                  Data lama hanya menyimpan tahun lahir. Biarkan apa adanya atau isi lengkap
-                  (format TTTT-BB-HH).
-                </p>
-              </>
-            ) : (
-              <input type="date" className={inputCls} value={/^\d{4}-\d{2}-\d{2}$/.test(wrgModal.tanggal_lahir) ? wrgModal.tanggal_lahir : ""} onChange={(e) => setWrgModal({ ...wrgModal, tanggal_lahir: e.target.value })} />
-            )}
-          </Field>
-          <Field label="BPJS / No. Kartu">
-            <input className={inputCls} value={wrgModal.bpjs} onChange={(e) => setWrgModal({ ...wrgModal, bpjs: e.target.value })} />
-          </Field>
-          <Field label="Status KB">
-            <select className={inputCls} value={wrgModal.status_kb} onChange={(e) => setWrgModal({ ...wrgModal, status_kb: e.target.value })}>
-              {STATUS_KB_LIST.map((s) => (
-                <option key={s || "-"} value={s}>{s || "— Tidak KB —"}</option>
-              ))}
-            </select>
-          </Field>
-          <div className="sm:col-span-2">
-            <Field label="Catatan">
-              <textarea className={inputCls} rows={2} value={wrgModal.catatan} onChange={(e) => setWrgModal({ ...wrgModal, catatan: e.target.value })} />
-            </Field>
-          </div>
+      <Modal open={wrgModal.open} onClose={() => { setWrgModal({ ...emptyWarga, open: false }); setErr(""); }} title={wrgModal.id ? "Edit Anggota" : "Tambah Anggota"} wide>
+        <div className="rounded-xl bg-slate-50 px-3.5 py-2.5 text-xs text-slate-500">
+          <span className="font-semibold text-slate-400">Keluarga:</span>{" "}
+          <span className="font-semibold text-slate-700">
+            {keluargaAktif?.nama_krt ?? "-"}
+          </span>
+          {keluargaAktif && (
+            <span className="text-slate-400">
+              {" "}· {keluargaAktif.bangunan} · {keluargaAktif.kelompok}
+            </span>
+          )}
         </div>
-        {err && <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{err}</p>}
+
+        <WargaFields
+          key={`${wrgModal.id}-${wrgModal.open}`}
+          value={wrgModal}
+          onChange={(v) => {
+            const berubah = (["nama", "jenis_kelamin", "tanggal_lahir"] as const).filter(
+              (k) => v[k] !== wrgModal[k]
+            );
+            setWrgModal((m) => ({ ...m, ...v }));
+            if (berubah.length > 0) {
+              setWrgErrors((e) => {
+                const nextErrors = { ...e };
+                berubah.forEach((k) => delete nextErrors[k]);
+                return nextErrors;
+              });
+              setErr("");
+            }
+          }}
+          errors={wrgErrors}
+        />
+
+        {err && <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-600">{err}</p>}
         <div className="mt-4 flex justify-end gap-2">
-          <Btn variant="secondary" onClick={() => setWrgModal({ ...emptyWarga, open: false })}>Batal</Btn>
-          <Btn onClick={saveWarga}>Simpan</Btn>
+          <Btn variant="secondary" onClick={() => { setWrgModal({ ...emptyWarga, open: false }); setErr(""); }}>Batal</Btn>
+          <Btn onClick={saveWarga} disabled={savingWarga}>
+            {savingWarga && <Spinner className="h-3.5 w-3.5" />}
+            {savingWarga ? "Menyimpan..." : "Simpan"}
+          </Btn>
         </div>
       </Modal>
     </>

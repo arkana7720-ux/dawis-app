@@ -208,10 +208,14 @@ export function Field({
   label,
   children,
   required,
+  error,
+  hint,
 }: {
   label: string;
   children: ReactNode;
   required?: boolean;
+  error?: string;
+  hint?: string;
 }) {
   return (
     <label className="block">
@@ -219,6 +223,11 @@ export function Field({
         {label} {required && <span className="text-red-500">*</span>}
       </span>
       {children}
+      {error ? (
+        <span className="mt-1 block text-[11px] font-semibold text-red-600">{error}</span>
+      ) : hint ? (
+        <span className="mt-1 block text-[11px] text-slate-400">{hint}</span>
+      ) : null}
     </label>
   );
 }
@@ -417,5 +426,36 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
         </div>
       )}
     </Card>
+  );
+}
+
+export function Toast({
+  message,
+  action,
+  onClose,
+}: {
+  message: string;
+  action?: ReactNode;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      role="status"
+      className="fixed inset-x-3 bottom-3 z-[60] mx-auto flex max-w-md items-center gap-2.5 rounded-2xl bg-slate-900 px-3.5 py-3 text-sm text-white shadow-2xl shadow-slate-900/30 animate-fade-in sm:inset-x-auto sm:right-5 sm:bottom-5 sm:mx-0"
+    >
+      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500">
+        <Icon name="check" className="h-3.5 w-3.5" />
+      </span>
+      <p className="min-w-0 flex-1 leading-snug">{message}</p>
+      {action}
+      <button
+        type="button"
+        onClick={onClose}
+        title="Tutup"
+        className="shrink-0 rounded-lg p-1 text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
+      >
+        <Icon name="x" className="h-4 w-4" />
+      </button>
+    </div>
   );
 }

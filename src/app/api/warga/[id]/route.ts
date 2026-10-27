@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { updateWarga, updateStatusWarga, deleteWarga } from "@/lib/repo";
-import { parseTanggalLahir, STATUS_WARGA_LIST } from "@/lib/calc";
+import { parseTanggalLahir, validasiWarga, STATUS_WARGA_LIST } from "@/lib/calc";
 import { fail, unauthorized, withDb } from "@/lib/api";
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -9,14 +9,20 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
   const { id } = await params;
   const body = await req.json();
-  if (!body.nama?.trim())
-    return NextResponse.json({ error: "Nama wajib diisi" }, { status: 400 });
+  const fields = validasiWarga(body);
+  if (!body.keluarga_id) fields.keluarga_id = "Keluarga wajib dipilih.";
+  if (Object.keys(fields).length > 0)
+    return NextResponse.json(
+      { error: Object.values(fields)[0], fields },
+      { status: 400 }
+    );
+
   try {
     await updateWarga(db, Number(id), {
       keluarga_id: Number(body.keluarga_id),
       nama: body.nama.trim(),
       hubungan: body.hubungan?.trim() || "",
-      jenis_kelamin: body.jenis_kelamin || "",
+      jenis_kelamin: String(body.jenis_kelamin).toUpperCase(),
       tanggal_lahir: parseTanggalLahir(body.tanggal_lahir),
       bpjs: body.bpjs?.trim() || "",
       status_kb: body.status_kb?.trim() || "",

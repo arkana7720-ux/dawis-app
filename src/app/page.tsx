@@ -374,9 +374,88 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {(() => {
+        const langkah = [
+          {
+            label: "Buat kelompok",
+            desc: "Contoh: Kelompok 1",
+            done: stats.byKelompok.length > 0,
+            href: "/struktur",
+          },
+          {
+            label: "Tambah bangunan",
+            desc: "Rumah atau kontrakan",
+            done: t.bangunan > 0,
+            href: "/struktur",
+          },
+          {
+            label: "Tambah keluarga",
+            desc: "Nama kepala rumah tangga",
+            done: t.keluarga > 0,
+            href: "/struktur",
+          },
+          {
+            label: "Isi data warga",
+            desc: "Nama, jenis kelamin, tanggal lahir",
+            done: t.individu > 0,
+            href: "/warga",
+          },
+        ];
+        if (langkah.every((s) => s.done)) return null;
+        const selesai = langkah.filter((s) => s.done).length;
+        return (
+          <Card className="mb-4 overflow-hidden">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-emerald-100 bg-emerald-50/60 px-4 py-3 sm:px-5">
+              <div>
+                <p className="text-sm font-bold text-slate-800">Persiapan Awal</p>
+                <p className="text-xs text-slate-500">{selesai} dari 4 langkah selesai</p>
+              </div>
+              <div className="h-2 w-28 overflow-hidden rounded-full bg-white ring-1 ring-emerald-100">
+                <div
+                  className="h-full rounded-full bg-emerald-500 transition-all"
+                  style={{ width: `${(selesai / langkah.length) * 100}%` }}
+                />
+              </div>
+            </div>
+            <div className="grid gap-2 p-3.5 sm:grid-cols-2 sm:p-4 lg:grid-cols-4">
+              {langkah.map((s, i) => (
+                <Link
+                  key={s.label}
+                  href={s.href}
+                  className={`group flex items-start gap-2.5 rounded-xl px-3 py-2.5 ring-1 transition-all ${
+                    s.done
+                      ? "bg-emerald-50/50 ring-emerald-100"
+                      : "bg-white ring-slate-200 hover:ring-emerald-300"
+                  }`}
+                >
+                  <span
+                    className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
+                      s.done ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-500"
+                    }`}
+                  >
+                    {s.done ? <Icon name="check" className="h-3 w-3" /> : i + 1}
+                  </span>
+                  <span className="min-w-0">
+                    <span
+                      className={`block text-xs font-bold ${
+                        s.done ? "text-emerald-800" : "text-slate-700"
+                      }`}
+                    >
+                      {s.label}
+                    </span>
+                    <span className="block text-[11px] leading-snug text-slate-400">
+                      {s.done ? "Selesai" : s.desc}
+                    </span>
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </Card>
+        );
+      })()}
+
       <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
-        <StatCard label="Bangunan" value={t.bangunan} sub="terdata" icon="building" grad="from-slate-500 to-slate-700" onClick={() => setDetail("bangunan")} />
-        <StatCard label="Keluarga" value={t.keluarga} sub="kepala rumah tangga" icon="key" grad="from-sky-500 to-blue-600" onClick={() => setDetail("keluarga")} />
+        <StatCard label="Bangunan" value={t.bangunan} sub="terdata" icon="building" grad="from-slate-500 to-slate-700" onClick={() => setDetail("bangunan")} />        <StatCard label="Keluarga" value={t.keluarga} sub="kepala rumah tangga" icon="key" grad="from-sky-500 to-blue-600" onClick={() => setDetail("keluarga")} />
         <StatCard label="Total Individu" value={t.individu} sub="jiwa tercatat" icon="users" grad="from-emerald-500 to-teal-600" onClick={() => setDetail("individu")} />
         <StatCard label="Laki-laki / Perempuan" value={`${t.laki} / ${t.perempuan}`} sub="rasio jenis kelamin" icon="family" grad="from-violet-500 to-purple-600" onClick={() => setDetail("lp")} />
         <StatCard label="Balita" value={t.balita} sub="usia 0–4 tahun" icon="baby" grad="from-amber-400 to-orange-500" onClick={() => setDetail("balita")} />
