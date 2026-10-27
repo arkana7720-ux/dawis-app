@@ -195,6 +195,25 @@ export default function StrukturPage() {
         }
       />
 
+      {data.length === 0 && (
+        <Card className="mb-5 p-8 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500 ring-1 ring-emerald-100">
+            <Icon name="building" className="h-7 w-7" />
+          </div>
+          <p className="mt-4 text-sm font-bold text-slate-700">Belum ada kelompok</p>
+          <p className="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-slate-500">
+            Buat kelompok pertama Anda, lalu tambahkan bangunan, keluarga, dan warganya. Data ini
+            hanya terlihat oleh akun Anda.
+          </p>
+          <div className="mt-4 flex justify-center">
+            <Btn onClick={() => { setErr(""); setKelModal({ open: true, nama: "", kode: "" }); }}>
+              <Icon name="plus" className="h-4 w-4" />
+              Tambah Kelompok
+            </Btn>
+          </div>
+        </Card>
+      )}
+
       <div className="mb-4 inline-flex flex-wrap rounded-xl bg-slate-100 p-1">
         {data.map((k) => {
           const sel = k.id === active?.id;

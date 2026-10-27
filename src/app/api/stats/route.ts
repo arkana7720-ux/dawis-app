@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import { getStats } from "@/lib/repo";
+import { fail, unauthorized, withDb } from "@/lib/api";
 
 export async function GET() {
+  const { db, user } = await withDb();
+  if (!user) return unauthorized();
   try {
-    return NextResponse.json(await getStats());
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return NextResponse.json(await getStats(db));
+  } catch (e) {
+    return fail(e);
   }
 }

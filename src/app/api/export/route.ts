@@ -1,4 +1,6 @@
+import { NextResponse } from "next/server";
 import { getAllWarga } from "@/lib/repo";
+import { fail, unauthorized, withDb } from "@/lib/api";
 
 function esc(v: unknown): string {
   const s = v === null || v === undefined ? "" : String(v);
@@ -6,8 +8,11 @@ function esc(v: unknown): string {
 }
 
 export async function GET() {
+  const { db, user } = await withDb();
+  if (!user) return unauthorized();
+
   try {
-    const rows = await getAllWarga();
+    const rows = await getAllWarga(db);
     const header = [
       "Kelompok", "Bangunan", "Tipe Bangunan", "Keluarga (KRT)", "Nama",
       "Hubungan", "L/P", "Tanggal Lahir", "Usia", "Kategori Usia", "Kategori",
@@ -34,10 +39,7 @@ export async function GET() {
         "Content-Disposition": `attachment; filename="data-dawis-${new Date().toISOString().slice(0, 10)}.csv"`,
       },
     });
-  } catch (e: any) {
-    return new Response(JSON.stringify({ error: e.message }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+  } catch (e) {
+    return fail(e);
   }
 }

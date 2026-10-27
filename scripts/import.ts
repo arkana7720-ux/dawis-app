@@ -78,7 +78,36 @@ function parseBangunanName(raw: string): ParsedBangunan {
 }
 
 async function main() {
-  const { supabase } = await import("../src/lib/supabase");
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const ownerUsername = process.env.DAWIS_OWNER_USERNAME;
+
+  if (!url || !key) {
+    throw new Error(
+      "Butuh NEXT_PUBLIC_SUPABASE_URL dan SUPABASE_SERVICE_ROLE_KEY di .env.local (Supabase → Settings → API → service_role)."
+    );
+  }
+  if (!ownerUsername) {
+    throw new Error(
+      "Butuh DAWIS_OWNER_USERNAME di .env.local — username akun pemilik data yang akan diisi."
+    );
+  }
+
+  const { createClient } = await import("@supabase/supabase-js");
+  const supabase = createClient(url, key, { auth: { persistSession: false } });
+
+  const { data: profile, error: profErr } = await supabase
+    .from("profiles")
+    .select("id, username")
+    .ilike("username", ownerUsername)
+    .maybeSingle();
+  if (profErr) throw new Error(profErr.message);
+  if (!profile) {
+    throw new Error(
+      `Profil "${ownerUsername}" belum ada. Daftarkan akunnya dulu lewat halaman /register.`
+    );
+  }
+  const ownerId = profile.id as string;
 
   async function insertRow(table: string, payload: any): Promise<number> {
     const { data, error } = await supabase.from(table).insert(payload).select("id").single();
@@ -89,8 +118,11 @@ async function main() {
   const csvPath = path.join(process.cwd(), "data", "source-dawis.csv");
   const rows = parseCSV(fs.readFileSync(csvPath, "utf8"));
 
-  console.log("Menghapus data lama di Supabase...");
-  const { error: delErr } = await supabase.from("kelompok").delete().neq("id", 0);
+  console.log(`Menghapus data lama milik ${ownerUsername}...`);
+  const { error: delErr } = await supabase
+    .from("kelompok")
+    .delete()
+    .eq("owner_id", ownerId);
   if (delErr) throw new Error(delErr.message);
 
 let currentKelompokId: number | null = null;
@@ -113,6 +145,7 @@ for (const r of rows) {
       nama: `Kelompok ${kelMatch[1]}`,
       kode: clean(kelMatch[2]),
       urutan: ++kelompokUrutan,
+      owner_id: ownerId,
     });
     stats.kelompok++;
     bangunanUrutan = 0;

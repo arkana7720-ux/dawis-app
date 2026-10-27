@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Icon } from "@/components/ui";
 
 const NAV = [
@@ -12,10 +12,49 @@ const NAV = [
   { href: "/laporan", label: "Laporan", icon: "report" },
 ];
 
+const AUTH_PAGES = new Set(["/login", "/register"]);
+
+interface Me {
+  user: { username: string; nama: string };
+  kelompok: { id: number; nama: string }[];
+}
+
+function inisial(nama: string, username: string): string {
+  const dariNama = nama
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("");
+  return (dariNama || username.slice(0, 2) || "?").toUpperCase();
+}
+
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const [me, setMe] = useState<Me | null>(null);
+
+  const isAuthPage = AUTH_PAGES.has(pathname);
+
+  useEffect(() => {
+    if (isAuthPage) return;
+    let aktif = true;
+    fetch("/api/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => {
+        if (aktif) setMe(j);
+      })
+      .catch(() => {});
+    return () => {
+      aktif = false;
+    };
+  }, [isAuthPage, pathname]);
+
+  if (isAuthPage) return <>{children}</>;
+
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
+
+  const avatarText = inisial(me?.user.nama ?? "", me?.user.username ?? "");
 
   return (
     <div className="min-h-screen">
@@ -68,28 +107,40 @@ export default function AppShell({ children }: { children: ReactNode }) {
         </nav>
 
         <div className="p-4">
-          <div className="rounded-2xl bg-white/[0.04] p-4 ring-1 ring-inset ring-white/10 backdrop-blur-sm">
+          <Link
+            href="/akun"
+            className={`group block rounded-2xl bg-white/[0.04] p-4 ring-1 ring-inset backdrop-blur-sm transition-all ${
+              isActive("/akun")
+                ? "ring-emerald-400/40"
+                : "ring-white/10 hover:bg-white/[0.07]"
+            }`}
+          >
             <div className="flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-300 ring-1 ring-inset ring-emerald-400/25">
-                <Icon name="family" className="h-4 w-4" />
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 text-[11px] font-bold text-white ring-1 ring-inset ring-emerald-300/40">
+                {avatarText}
               </span>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="truncate text-xs font-bold text-slate-100">
-                  Dasa Wisma RT 04/RW 11
+                  {me?.user.nama || "Akun Saya"}
                 </p>
-                <p className="text-[10px] text-slate-500">Kel. Rorotan, Jakarta Utara</p>
+                <p className="truncate font-mono text-[10px] uppercase tracking-wider text-slate-500">
+                  {me?.user.username || "kelola akun"}
+                </p>
               </div>
+              <Icon
+                name="chevron"
+                className="h-4 w-4 shrink-0 text-slate-600 transition-all group-hover:translate-x-0.5 group-hover:text-emerald-400"
+              />
             </div>
             <div className="mt-3 flex items-center justify-between rounded-xl bg-black/20 px-3 py-2 ring-1 ring-inset ring-white/5">
               <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-500">
-                ID Wilayah
+                Kelompok
               </span>
-              <span className="inline-flex items-center gap-1 text-[11px] font-extrabold tracking-widest text-emerald-300">
-                <Icon name="check" className="h-3 w-3" />
-                U11289
+              <span className="text-[11px] font-extrabold tracking-widest text-emerald-300">
+                {me ? me.kelompok.length : "–"}
               </span>
             </div>
-          </div>
+          </Link>
         </div>
       </aside>
 
@@ -103,9 +154,13 @@ export default function AppShell({ children }: { children: ReactNode }) {
             <p className="text-[10px] font-medium text-slate-400">RT 04/RW 11 Rorotan</p>
           </div>
         </div>
-        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 text-xs font-bold text-white ring-2 ring-emerald-400/30">
-          AD
-        </span>
+        <Link
+          href="/akun"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 text-xs font-bold text-white ring-2 ring-emerald-400/30"
+          aria-label="Akun saya"
+        >
+          {avatarText}
+        </Link>
       </header>
 
       <main className="pb-28 md:pb-10 md:pl-[260px]">

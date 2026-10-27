@@ -1,4 +1,4 @@
-import { supabase } from "./supabase";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   hitungUsia,
   kategoriUsia,
@@ -89,18 +89,23 @@ interface NestedRow {
 }
 
 async function nextUrutan(
+  db: SupabaseClient,
   table: "kelompok" | "bangunan" | "keluarga",
   filter?: { col: string; val: number }
 ): Promise<number> {
-  let query = supabase.from(table).select("urutan").order("urutan", { ascending: false }).limit(1);
+  let query = db.from(table).select("urutan").order("urutan", { ascending: false }).limit(1);
   if (filter) query = query.eq(filter.col, filter.val);
   const rows = await q<any[]>(query);
   return (rows[0]?.urutan ?? 0) + 1;
 }
 
-export async function getAllWarga(): Promise<WargaRow[]> {
+/**
+ * Semua query di bawah ini otomatis dibatasi oleh Row Level Security:
+ * user hanya menerima baris kelompok miliknya (beserta turunannya).
+ */
+export async function getAllWarga(db: SupabaseClient): Promise<WargaRow[]> {
   const rows = await q<NestedRow[]>(
-    supabase.from("warga").select("*, keluarga(*, bangunan(*, kelompok(*)))")
+    db.from("warga").select("*, keluarga(*, bangunan(*, kelompok(*)))")
   );
 
   const flat = rows.map((r) => {
@@ -145,68 +150,90 @@ export async function getAllWarga(): Promise<WargaRow[]> {
   return flat.map(({ _kU, _bU, _fU, ...rest }) => rest);
 }
 
-export async function listKelompok() {
-  return q<any[]>(supabase.from("kelompok").select("*").order("urutan"));
+export async function listKelompok(db: SupabaseClient) {
+  return q<any[]>(db.from("kelompok").select("*").order("urutan"));
 }
 
-export async function createKelompok(nama: string, kode: string) {
-  const urutan = await nextUrutan("kelompok");
+export async function createKelompok(db: SupabaseClient, nama: string, kode: string) {
+  const urutan = await nextUrutan(db, "kelompok");
   const row = await q<{ id: number }>(
-    supabase.from("kelompok").insert({ nama, kode, urutan }).select("id").single()
+    db.from("kelompok").insert({ nama, kode, urutan }).select("id").single()
   );
   return row.id;
 }
 
-export async function updateKelompok(id: number, nama: string, kode: string) {
-  await q(supabase.from("kelompok").update({ nama, kode }).eq("id", id));
+export async function updateKelompok(
+  db: SupabaseClient,
+  id: number,
+  nama: string,
+  kode: string
+) {
+  await q(db.from("kelompok").update({ nama, kode }).eq("id", id));
 }
 
-export async function deleteKelompok(id: number) {
-  await q(supabase.from("kelompok").delete().eq("id", id));
+export async function deleteKelompok(db: SupabaseClient, id: number) {
+  await q(db.from("kelompok").delete().eq("id", id));
 }
 
-export async function createBangunan(data: {
-  kelompok_id: number;
-  nama: string;
-  tipe: string;
-  keterangan: string;
-}) {
-  const urutan = await nextUrutan("bangunan", { col: "kelompok_id", val: data.kelompok_id });
+export async function createBangunan(
+  db: SupabaseClient,
+  data: {
+    kelompok_id: number;
+    nama: string;
+    tipe: string;
+    keterangan: string;
+  }
+) {
+  const urutan = await nextUrutan(db, "bangunan", {
+    col: "kelompok_id",
+    val: data.kelompok_id,
+  });
   const row = await q<{ id: number }>(
-    supabase.from("bangunan").insert({ ...data, urutan }).select("id").single()
+    db.from("bangunan").insert({ ...data, urutan }).select("id").single()
   );
   return row.id;
 }
 
 export async function updateBangunan(
+  db: SupabaseClient,
   id: number,
   data: { kelompok_id: number; nama: string; tipe: string; keterangan: string }
 ) {
-  await q(supabase.from("bangunan").update(data).eq("id", id));
+  await q(db.from("bangunan").update(data).eq("id", id));
 }
 
-export async function deleteBangunan(id: number) {
-  await q(supabase.from("bangunan").delete().eq("id", id));
+export async function deleteBangunan(db: SupabaseClient, id: number) {
+  await q(db.from("bangunan").delete().eq("id", id));
 }
 
-export async function createKeluarga(data: {
-  bangunan_id: number;
-  nama_krt: string;
-  catatan: string;
-}) {
-  const urutan = await nextUrutan("keluarga", { col: "bangunan_id", val: data.bangunan_id });
+export async function createKeluarga(
+  db: SupabaseClient,
+  data: {
+    bangunan_id: number;
+    nama_krt: string;
+    catatan: string;
+  }
+) {
+  const urutan = await nextUrutan(db, "keluarga", {
+    col: "bangunan_id",
+    val: data.bangunan_id,
+  });
   const row = await q<{ id: number }>(
-    supabase.from("keluarga").insert({ ...data, urutan }).select("id").single()
+    db.from("keluarga").insert({ ...data, urutan }).select("id").single()
   );
   return row.id;
 }
 
-export async function updateKeluarga(id: number, data: { nama_krt: string; catatan: string }) {
-  await q(supabase.from("keluarga").update(data).eq("id", id));
+export async function updateKeluarga(
+  db: SupabaseClient,
+  id: number,
+  data: { nama_krt: string; catatan: string }
+) {
+  await q(db.from("keluarga").update(data).eq("id", id));
 }
 
-export async function deleteKeluarga(id: number) {
-  await q(supabase.from("keluarga").delete().eq("id", id));
+export async function deleteKeluarga(db: SupabaseClient, id: number) {
+  await q(db.from("keluarga").delete().eq("id", id));
 }
 
 export interface WargaInput {
@@ -244,10 +271,10 @@ function wargaExtraFields(data: WargaInput) {
   };
 }
 
-export async function createWarga(data: WargaInput) {
+export async function createWarga(db: SupabaseClient, data: WargaInput) {
   try {
     const row = await q<{ id: number }>(
-      supabase
+      db
         .from("warga")
         .insert({ ...wargaBaseFields(data), ...wargaExtraFields(data) })
         .select("id")
@@ -257,7 +284,7 @@ export async function createWarga(data: WargaInput) {
   } catch (e) {
     if (isMissingColumnErr(e)) {
       const row = await q<{ id: number }>(
-        supabase.from("warga").insert(wargaBaseFields(data)).select("id").single()
+        db.from("warga").insert(wargaBaseFields(data)).select("id").single()
       );
       return row.id;
     }
@@ -265,17 +292,17 @@ export async function createWarga(data: WargaInput) {
   }
 }
 
-export async function updateWarga(id: number, data: WargaInput) {
+export async function updateWarga(db: SupabaseClient, id: number, data: WargaInput) {
   try {
     await q(
-      supabase
+      db
         .from("warga")
         .update({ ...wargaBaseFields(data), ...wargaExtraFields(data) })
         .eq("id", id)
     );
   } catch (e) {
     if (isMissingColumnErr(e)) {
-      await q(supabase.from("warga").update(wargaBaseFields(data)).eq("id", id));
+      await q(db.from("warga").update(wargaBaseFields(data)).eq("id", id));
       return;
     }
     throw e;
@@ -283,22 +310,23 @@ export async function updateWarga(id: number, data: WargaInput) {
 }
 
 export async function updateStatusWarga(
+  db: SupabaseClient,
   id: number,
   data: { status_warga: string; tgl_status_berubah: string; catatan_status: string }
 ) {
-  await q(supabase.from("warga").update(data).eq("id", id));
+  await q(db.from("warga").update(data).eq("id", id));
 }
 
-export async function deleteWarga(id: number) {
-  await q(supabase.from("warga").delete().eq("id", id));
+export async function deleteWarga(db: SupabaseClient, id: number) {
+  await q(db.from("warga").delete().eq("id", id));
 }
 
-export async function getStruktur() {
+export async function getStruktur(db: SupabaseClient) {
   const [kelompok, bangunan, keluarga, warga] = await Promise.all([
-    listKelompok(),
-    q<any[]>(supabase.from("bangunan").select("*").order("urutan")),
-    q<any[]>(supabase.from("keluarga").select("*").order("urutan")),
-    getAllWarga(),
+    listKelompok(db),
+    q<any[]>(db.from("bangunan").select("*").order("urutan")),
+    q<any[]>(db.from("keluarga").select("*").order("urutan")),
+    getAllWarga(db),
   ]);
 
   return kelompok.map((k) => ({
@@ -318,16 +346,16 @@ export async function getStruktur() {
   }));
 }
 
-export async function getStats() {
+export async function getStats(db: SupabaseClient) {
   const [all, bangunanRows, keluargaRows] = await Promise.all([
-    getAllWarga(),
-    q<any[]>(supabase.from("bangunan").select("id, kelompok_id")),
-    q<any[]>(supabase.from("keluarga").select("id, bangunan_id")),
+    getAllWarga(db),
+    q<any[]>(db.from("bangunan").select("id, kelompok_id")),
+    q<any[]>(db.from("keluarga").select("id, bangunan_id")),
   ]);
 
   const aktif = all.filter((x) => x.status_warga === "aktif");
 
-  const byKelompok = (await listKelompok()).map((k) => {
+  const byKelompok = (await listKelompok(db)).map((k) => {
     const w = aktif.filter((x) => x.kelompok_id === k.id);
     const bIds = bangunanRows.filter((b) => b.kelompok_id === k.id).map((b) => b.id);
     const fCount = keluargaRows.filter((f) => bIds.includes(f.bangunan_id)).length;

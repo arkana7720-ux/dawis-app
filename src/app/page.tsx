@@ -321,7 +321,7 @@ export default function DashboardPage() {
     return (
       <>
         <Skeleton className="h-9 w-56" />
-        <div className="mt-6 grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
+        <div className="mt-6 grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <Skeleton key={i} className="h-[84px] sm:h-[104px]" />
           ))}
@@ -374,7 +374,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
         <StatCard label="Bangunan" value={t.bangunan} sub="terdata" icon="building" grad="from-slate-500 to-slate-700" onClick={() => setDetail("bangunan")} />
         <StatCard label="Keluarga" value={t.keluarga} sub="kepala rumah tangga" icon="key" grad="from-sky-500 to-blue-600" onClick={() => setDetail("keluarga")} />
         <StatCard label="Total Individu" value={t.individu} sub="jiwa tercatat" icon="users" grad="from-emerald-500 to-teal-600" onClick={() => setDetail("individu")} />
