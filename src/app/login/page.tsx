@@ -13,6 +13,8 @@ function pesanError(message: string): string {
   if (m.includes("invalid login credentials")) return "Username atau password salah.";
   if (m.includes("email not confirmed"))
     return "Akun belum aktif. Hubungi pengelola untuk mengaktifkan.";
+  if (m.includes("banned") || m.includes("user_banned"))
+    return "Akun ini dinonaktifkan. Hubungi pengelola Dawis.";
   if (m.includes("too many requests"))
     return "Terlalu banyak percobaan. Tunggu beberapa menit lalu coba lagi.";
   if (m.includes("failed to fetch") || m.includes("network"))

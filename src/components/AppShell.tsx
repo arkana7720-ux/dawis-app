@@ -5,17 +5,19 @@ import { usePathname } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 import { Icon } from "@/components/ui";
 
-const NAV = [
+const NAV_UTAMA = [
   { href: "/", label: "Dashboard", icon: "home" },
   { href: "/warga", label: "Data Warga", icon: "users" },
   { href: "/struktur", label: "Struktur Wilayah", icon: "building" },
   { href: "/laporan", label: "Laporan", icon: "report" },
 ];
 
+const NAV_ADMIN = { href: "/admin", label: "Kelola Akun", icon: "key" };
+
 const AUTH_PAGES = new Set(["/login", "/register"]);
 
 interface Me {
-  user: { username: string; nama: string };
+  user: { username: string; nama: string; is_admin?: boolean };
   kelompok: { id: number; nama: string }[];
 }
 
@@ -34,6 +36,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const [me, setMe] = useState<Me | null>(null);
 
   const isAuthPage = AUTH_PAGES.has(pathname);
+  const isAdmin = Boolean(me?.user.is_admin);
+  const NAV = isAdmin ? [...NAV_UTAMA, NAV_ADMIN] : NAV_UTAMA;
 
   useEffect(() => {
     if (isAuthPage) return;
@@ -173,7 +177,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
       </main>
 
       <nav
-        className="no-print fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 grid grid-cols-4 gap-1 rounded-2xl border border-slate-200/60 bg-white/85 p-1.5 shadow-xl shadow-slate-900/10 backdrop-blur-xl md:hidden"
+        className={`no-print fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 grid ${
+          isAdmin ? "grid-cols-5" : "grid-cols-4"
+        } gap-1 rounded-2xl border border-slate-200/60 bg-white/85 p-1.5 shadow-xl shadow-slate-900/10 backdrop-blur-xl md:hidden`}
         style={{ marginBottom: "env(safe-area-inset-bottom)" }}
       >
         {NAV.map((n) => (

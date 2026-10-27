@@ -19,6 +19,7 @@ export async function GET() {
         id: user.id,
         username: profile?.username ?? "",
         nama: profile?.nama ?? "",
+        is_admin: profile?.is_admin ?? false,
       },
       kelompok: kelompok ?? [],
     });

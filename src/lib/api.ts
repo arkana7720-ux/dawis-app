@@ -17,6 +17,13 @@ export function unauthorized() {
   );
 }
 
+export function forbidden() {
+  return NextResponse.json(
+    { error: "Halaman ini hanya untuk pengelola akun." },
+    { status: 403 }
+  );
+}
+
 export function fail(e: unknown) {
   const message = e instanceof Error ? e.message : String(e);
   return NextResponse.json({ error: message }, { status: 500 });

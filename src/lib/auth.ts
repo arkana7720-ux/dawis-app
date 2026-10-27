@@ -33,6 +33,7 @@ export interface Profile {
   id: string;
   username: string;
   nama: string;
+  is_admin: boolean;
 }
 
 export async function getProfile(
@@ -41,7 +42,7 @@ export async function getProfile(
 ): Promise<Profile | null> {
   const { data } = await db
     .from("profiles")
-    .select("id, username, nama")
+    .select("id, username, nama, is_admin")
     .eq("id", userId)
     .maybeSingle();
   return (data as Profile | null) ?? null;

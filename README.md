@@ -20,6 +20,9 @@ Menggantikan Google Sheet "Data Dawis Yusril" dengan database Supabase
 - **Laporan** — rekapitulasi format mirip sheet lama, siap cetak dan ekspor
   CSV/Excel.
 - **Akun Saya** — ubah password sendiri, lihat username dan kelompok yang dikelola.
+- **Panel Admin** (khusus akun admin) — daftar semua akun, reset password,
+  perbaiki nama, nonaktifkan akun ganda, pindahkan data, atau hapus akun yang
+  salah daftar. Panel ini **tidak** bisa membuka isi data warga akun lain.
 - Usia, kategori usia, kategori (Balita/Anak/Remaja/Dewasa/Lansia), serta
   status **WUS/PUS dihitung otomatis** dari tanggal lahir.
 
@@ -29,12 +32,15 @@ Menggantikan Google Sheet "Data Dawis Yusril" dengan database Supabase
 - **Password**: dipilih sendiri saat daftar, minimal 6 karakter. Bisa diubah di
   menu **Akun Saya**.
 - Pendaftaran akun baru dilakukan sendiri oleh masing-masing ibu Dawis lewat
-  halaman **/register**. Tidak ada admin di dalam aplikasi.
+  halaman **/register**.
+- **Admin**: akun dengan `profiles.is_admin = true` mendapat menu **Kelola Akun**
+  (`/admin`) untuk mengurus akun ibu Dawis lain. Admin **tidak** bisa melihat
+  data warga akun lain — hanya nama, username, dan jumlah datanya.
 - Bisa juga dibuatkan langsung dari komputer pengelola:
   `npm run create-user -- A12345 password123 "Ibu Siti"`.
-- Lupa password: pengelola (pemilik project Supabase) menjalankan
-  `npm run reset-password -- A12345 passwordbaru` (butuh
-  `SUPABASE_SERVICE_ROLE_KEY` di `.env.local`).
+- Lupa password: admin membuka **/admin** → **Kelola** → **Reset password**.
+  Alternatif dari komputer: `npm run reset-password -- A12345 passwordbaru`
+  (butuh `SUPABASE_SERVICE_ROLE_KEY` di `.env.local`).
 
 ### Pengaturan Supabase yang wajib
 
@@ -74,9 +80,13 @@ Environment yang dibutuhkan di `.env.local`:
 NEXT_PUBLIC_SUPABASE_URL=https://<ref>.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 
-# hanya untuk script admin (import / reset password)
+# dipakai server untuk Panel Admin + script (import / reset password)
 SUPABASE_SERVICE_ROLE_KEY=...
 ```
+
+> `SUPABASE_SERVICE_ROLE_KEY` **wajib** ada di Vercel (Production) agar Panel
+> Admin berfungsi. Jangan pernah memakai prefix `NEXT_PUBLIC_` untuk key ini —
+> nilainya tidak boleh sampai ke browser.
 
 ## Setup Supabase Baru
 
@@ -85,9 +95,15 @@ Jalankan berurutan di **SQL Editor**:
 1. `supabase/schema.sql`
 2. `supabase/migration-v2.sql`
 3. `supabase/migration-v3-auth.sql`
+4. `supabase/migration-v4-admin.sql`
+5. `supabase/claim-existing-data.sql` (kalau ada data lama yang perlu dipindahkan)
 
 Lalu isi `.env.local` (Settings → API) dan daftarkan akun pertama lewat
-`/register`.
+`/register`. Jadikan akun itu admin:
+
+```sql
+update public.profiles set is_admin = true where lower(username) = lower('A12345');
+```
 
 ## Migrasi ke multi-akun (database yang sudah berisi data)
 
@@ -105,10 +121,41 @@ Lalu isi `.env.local` (Settings → API) dan daftarkan akun pertama lewat
    menjadi milik akun itu.
 6. Ibu Dawis lainnya mendaftar sendiri lewat `/register`, lalu membuat
    kelompoknya di menu **Struktur Wilayah**.
+7. Jalankan `supabase/migration-v4-admin.sql` untuk mengaktifkan **Panel
+   Admin**, lalu tandai akun pengelola:
+   `update public.profiles set is_admin = true where lower(username) = 'u11289';`
 
 `npm run import` sekarang memakai service role dan hanya menghapus data milik
 `DAWIS_OWNER_USERNAME` (tambahkan variabel itu di `.env.local`), sehingga tidak
 menyentuh data akun lain.
+
+## Panel Admin
+
+Buka menu **Kelola Akun** (atau `/admin`). Hanya akun dengan
+`profiles.is_admin = true` yang bisa masuk; akun lain akan melihat pesan
+"halaman ini hanya untuk pengelola".
+
+| Kemampuan | Keterangan |
+|---|---|
+| Lihat daftar akun | nama, username, tanggal daftar, status, jumlah kelompok/bangunan/keluarga/warga |
+| Reset password | tanpa perlu terminal; password bisa diacak otomatis lalu disalin |
+| Perbaiki nama tampil | nama yang muncul di sidebar akun tersebut |
+| Nonaktifkan / aktifkan | login diblokir, data tetap utuh |
+| Pindahkan data | seluruh kelompok beserta isinya dipindah ke akun lain |
+| Hapus permanen | wajib mengetik ulang username; akun yang masih punya data wajib mencentang peringatan |
+
+Aturan keamanan:
+
+- `SUPABASE_SERVICE_ROLE_KEY` hanya dipakai di server (Route Handler). Browser
+  tidak pernah menerimanya.
+- Panel hanya membaca **metadata** akun lewat fungsi SQL `admin_account_list()`.
+  Isi data warga tetap dilindungi RLS per pemilik.
+- User biasa hanya boleh mengubah kolom `nama` miliknya sendiri; `username`
+  dan `is_admin` tidak bisa diubah lewat API publik.
+- Akun sendiri tidak bisa dinonaktifkan/dihapus, dan admin terakhir tidak bisa
+  dihapus.
+- Menghapus akun ikut menghapus seluruh datanya (relasi `on delete cascade`).
+  Untuk akun yang sudah berisi data, **pindahkan datanya dulu**.
 
 ## Deploy
 

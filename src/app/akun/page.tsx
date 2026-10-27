@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { getBrowserSupabase } from "@/lib/supabase";
 import {
   Btn,
@@ -16,7 +17,7 @@ import {
 } from "@/components/ui";
 
 interface Me {
-  user: { id: string; username: string; nama: string };
+  user: { id: string; username: string; nama: string; is_admin: boolean };
   kelompok: { id: number; nama: string; kode: string }[];
 }
 
@@ -185,6 +186,28 @@ export default function AkunPage() {
           </div>
         </Card>
       </div>
+
+      {me?.user.is_admin && (
+        <Card className="mt-4">
+          <CardHeader
+            title="Panel Pengelola"
+            desc="Kelola akun ibu Dawis: reset password, nonaktifkan, atau hapus akun"
+          />
+          <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+            <p className="max-w-lg text-xs leading-relaxed text-slate-500">
+              Reset password akun yang lupa sandi, nonaktifkan akun ganda, atau hapus akun yang
+              salah daftar. Data warga setiap akun tetap tidak dapat dibuka dari panel ini.
+            </p>
+            <Link
+              href="/admin"
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-emerald-600/25 transition-all hover:bg-emerald-500 active:scale-[0.98]"
+            >
+              <Icon name="key" className="h-4 w-4" />
+              Buka Panel Admin
+            </Link>
+          </div>
+        </Card>
+      )}
 
       <Card className="mt-4">
         <CardHeader title="Data Anda bersifat pribadi" />
