@@ -18,6 +18,7 @@ import {
 } from "@/components/ui";
 import { validasiWarga } from "@/lib/calc";
 import { WargaFields, emptyWargaValues } from "@/components/WargaFields";
+import { fetchApi, invalidateApi } from "@/lib/clientApi";
 
 interface Anggota {
   id: number;
@@ -74,11 +75,7 @@ export default function StrukturPage() {
 
   const load = () => {
     setLoadErr("");
-    fetch("/api/bangunan")
-      .then(async (r) => {
-        if (!r.ok) throw new Error((await r.json()).error || "Gagal memuat data");
-        return r.json();
-      })
+    fetchApi<KelompokNode[]>("/api/bangunan")
       .then(setData)
       .catch((e) => setLoadErr(e.message));
   };
@@ -98,6 +95,7 @@ export default function StrukturPage() {
       setErr(j.error || "Gagal menyimpan");
       return false;
     }
+    invalidateApi();
     return true;
   };
 
@@ -173,12 +171,14 @@ export default function StrukturPage() {
     setWrgModal({ ...emptyWarga, open: false });
     setWrgErrors({});
     setErr("");
+    invalidateApi();
     load();
   };
 
   const hapus = async (url: string, label: string) => {
     if (!confirm(`Hapus "${label}"? Data di dalamnya juga akan terhapus.`)) return;
     await fetch(url, { method: "DELETE" });
+    invalidateApi();
     load();
   };
 

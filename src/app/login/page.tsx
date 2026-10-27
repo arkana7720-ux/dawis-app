@@ -7,6 +7,7 @@ import AuthShell from "@/components/AuthShell";
 import { Btn, Field, Icon, inputCls } from "@/components/ui";
 import { getBrowserSupabase } from "@/lib/supabase";
 import { normalizeUsername, usernameToEmail } from "@/lib/auth";
+import { invalidateApi } from "@/lib/clientApi";
 
 function pesanError(message: string): string {
   const m = message.toLowerCase();
@@ -50,6 +51,7 @@ export default function LoginPage() {
       return;
     }
 
+    invalidateApi();
     router.replace("/");
     router.refresh();
   };

@@ -36,6 +36,7 @@ import {
   labelPendidikan,
   validasiWarga,
 } from "@/lib/calc";
+import { fetchApi, invalidateApi } from "@/lib/clientApi";
 
 interface WargaRow {
   id: number;
@@ -152,18 +153,13 @@ export default function WargaPage() {
 
   const load = () => {
     setLoadErr("");
-    fetch("/api/warga")
-      .then(async (r) => {
-        if (!r.ok) throw new Error((await r.json()).error || "Gagal memuat data");
-        return r.json();
-      })
+    fetchApi<WargaRow[]>("/api/warga")
       .then(setRows)
       .catch((e) => setLoadErr(e.message));
   };
 
   const loadStruktur = () =>
-    fetch("/api/bangunan")
-      .then((r) => r.json())
+    fetchApi<StrukturNode[]>("/api/bangunan")
       .then(setStruktur)
       .catch(() => {})
       .finally(() => setStrukturLoaded(true));
@@ -341,6 +337,7 @@ export default function WargaPage() {
       return setErr(j.error || "Gagal menyimpan");
     }
 
+    invalidateApi();
     setLastKeluargaId(Number(form.keluarga_id));
     const hidden = Boolean(hasFilter) || fStatus === "arsip";
     setToast({ msg: `Data ${form.nama.trim()} berhasil disimpan.`, showReset: hidden });
@@ -366,6 +363,7 @@ export default function WargaPage() {
   const hapus = async (w: WargaRow) => {
     if (!confirm(`Hapus permanen data "${w.nama}"?`)) return;
     await fetch(`/api/warga/${w.id}`, { method: "DELETE" });
+    invalidateApi();
     setMenuFor(null);
     setDetailRow(null);
     load();
@@ -402,6 +400,7 @@ export default function WargaPage() {
       return setStErr(j.error || "Gagal menyimpan status");
     }
     setStatusModal({ open: false, w: null });
+    invalidateApi();
     setDetailRow(null);
     load();
   };
@@ -1168,6 +1167,7 @@ export default function WargaPage() {
           value={form.keluarga_id}
           onChange={pilihKeluarga}
           onCreated={(id) => {
+            invalidateApi();
             loadStruktur();
             setForm((f) => ({
               ...f,
@@ -1245,6 +1245,7 @@ export default function WargaPage() {
         struktur={struktur}
         onDone={(fid) => {
           setWizardOpen(false);
+          invalidateApi();
           loadStruktur();
           setLastKeluargaId(fid);
           setForm({ ...emptyForm, keluarga_id: String(fid), hubungan: "KRT" });

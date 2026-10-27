@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { invalidateApi } from "@/lib/clientApi";
 import {
   Avatar,
   Badge,
@@ -417,6 +418,7 @@ export default function AdminPage() {
 
   const segarkan = async (pesan: string) => {
     setToast(pesan);
+    invalidateApi();
     try {
       const list = await muat();
       setPilih((p) => (p ? list.find((a) => a.id === p.id) ?? null : null));

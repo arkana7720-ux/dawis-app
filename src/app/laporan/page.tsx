@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Btn, Card, ErrorState, Icon, PageHeader, Skeleton } from "@/components/ui";
 import { KATEGORI_USIA_LIST } from "@/lib/calc";
+import { fetchApi } from "@/lib/clientApi";
 
 interface Stats {
   totals: Record<string, number>;
@@ -19,11 +20,7 @@ export default function LaporanPage() {
 
   const load = () => {
     setLoadErr("");
-    fetch("/api/stats")
-      .then(async (r) => {
-        if (!r.ok) throw new Error((await r.json()).error || "Gagal memuat data");
-        return r.json();
-      })
+    fetchApi<Stats>("/api/stats")
       .then(setStats)
       .catch((e) => setLoadErr(e.message));
   };

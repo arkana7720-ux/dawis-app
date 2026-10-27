@@ -28,6 +28,7 @@ import {
   Skeleton,
 } from "@/components/ui";
 import { formatTanggal, KATEGORI_USIA_LIST } from "@/lib/calc";
+import { fetchApi } from "@/lib/clientApi";
 
 interface Stats {
   totals: Record<string, number>;
@@ -185,9 +186,7 @@ export default function DashboardPage() {
   const cetakPdf = async () => {
     if (!warga) {
       try {
-        const r = await fetch("/api/warga");
-        if (!r.ok) throw new Error();
-        setWarga(await r.json());
+        setWarga(await fetchApi<WargaRow[]>("/api/warga"));
       } catch {
         return;
       }
@@ -208,11 +207,7 @@ export default function DashboardPage() {
 
   const load = () => {
     setErr("");
-    fetch("/api/stats")
-      .then(async (r) => {
-        if (!r.ok) throw new Error((await r.json()).error || "Gagal memuat data");
-        return r.json();
-      })
+    fetchApi<any>("/api/stats")
       .then(setStats)
       .catch((e) => setErr(e.message));
   };
@@ -235,20 +230,12 @@ export default function DashboardPage() {
     setDErr("");
     const needTree = detail === "bangunan" || detail === "keluarga";
     if (needTree && !tree) {
-      fetch("/api/bangunan")
-        .then(async (r) => {
-          if (!r.ok) throw new Error("Gagal memuat data");
-          return r.json();
-        })
+      fetchApi<any[]>("/api/bangunan")
         .then(setTree)
         .catch((e) => setDErr(e.message));
     }
     if (!needTree && !warga) {
-      fetch("/api/warga")
-        .then(async (r) => {
-          if (!r.ok) throw new Error("Gagal memuat data");
-          return r.json();
-        })
+      fetchApi<WargaRow[]>("/api/warga")
         .then(setWarga)
         .catch((e) => setDErr(e.message));
     }

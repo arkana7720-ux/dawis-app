@@ -7,6 +7,7 @@ import AuthShell from "@/components/AuthShell";
 import { Btn, Field, Icon, inputCls } from "@/components/ui";
 import { getBrowserSupabase } from "@/lib/supabase";
 import { isValidUsername, normalizeUsername, usernameToEmail } from "@/lib/auth";
+import { invalidateApi } from "@/lib/clientApi";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -74,6 +75,7 @@ export default function RegisterPage() {
       );
     }
 
+    invalidateApi();
     router.replace("/warga");
     router.refresh();
   };

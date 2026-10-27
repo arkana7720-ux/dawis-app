@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 import { Icon } from "@/components/ui";
+import { fetchApi, subscribeApi } from "@/lib/clientApi";
 
 const NAV_UTAMA = [
   { href: "/", label: "Dashboard", icon: "home" },
@@ -42,16 +43,22 @@ export default function AppShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (isAuthPage) return;
     let aktif = true;
-    fetch("/api/me")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((j) => {
-        if (aktif) setMe(j);
-      })
-      .catch(() => {});
+    // Cukup sekali saat halaman dimuat; tidak perlu tiap pindah menu.
+    // Setelah data berubah, invalidateApi() akan memicu muat ulang.
+    const loadMe = () => {
+      fetchApi<Me>("/api/me")
+        .then((j) => {
+          if (aktif) setMe(j);
+        })
+        .catch(() => {});
+    };
+    loadMe();
+    const unsubscribe = subscribeApi(loadMe);
     return () => {
       aktif = false;
+      unsubscribe();
     };
-  }, [isAuthPage, pathname]);
+  }, [isAuthPage]);
 
   if (isAuthPage) return <>{children}</>;
 

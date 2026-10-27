@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getBrowserSupabase } from "@/lib/supabase";
+import { invalidateApi } from "@/lib/clientApi";
 import {
   Btn,
   Card,
@@ -69,6 +70,7 @@ export default function AkunPage() {
     setLoggingOut(true);
     const sb = getBrowserSupabase();
     await sb.auth.signOut();
+    invalidateApi();
     router.replace("/login");
     router.refresh();
   };
