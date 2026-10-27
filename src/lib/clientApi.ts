@@ -5,13 +5,13 @@
  * (mis. daftar warga 100 KB) dan klik tidak terasa menunggu.
  *
  * Aturan:
- * - Data dipakai ulang maksimal 15 detik.
+ * - Data dipakai ulang maksimal 60 detik.
  * - Setelah ada perubahan data (simpan/hapus), panggil `invalidateApi()`
  *   supaya halaman berikutnya mengambil data terbaru dan sidebar ikut segar.
  * - Permintaan yang sedang berjalan dipakai bersama (tidak dobel).
  */
 
-const TTL_MS = 15_000;
+const TTL_MS = 60_000;
 const cache = new Map<string, { t: number; data: unknown }>();
 const inflight = new Map<string, Promise<unknown>>();
 const listeners = new Set<() => void>();

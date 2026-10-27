@@ -60,6 +60,31 @@ export default function AppShell({ children }: { children: ReactNode }) {
     };
   }, [isAuthPage]);
 
+  // Panaskan data yang paling sering dibuka supaya klik menu terasa instan.
+  // Dilewati kalau pengguna menghemat kuota atau jaringan sangat lambat.
+  useEffect(() => {
+    if (isAuthPage || !me) return;
+    const conn = (navigator as unknown as {
+      connection?: { saveData?: boolean; effectiveType?: string };
+    }).connection;
+    if (conn?.saveData || /(^|-)2g$/.test(conn?.effectiveType || "")) return;
+
+    const mulai = () => {
+      for (const url of ["/api/stats", "/api/warga", "/api/bangunan"]) {
+        fetchApi(url).catch(() => {});
+      }
+    };
+    const w = window as unknown as {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+    };
+    if (w.requestIdleCallback) {
+      w.requestIdleCallback(mulai, { timeout: 2500 });
+      return;
+    }
+    const t = setTimeout(mulai, 1500);
+    return () => clearTimeout(t);
+  }, [isAuthPage, me]);
+
   if (isAuthPage) return <>{children}</>;
 
   const isActive = (href: string) =>
