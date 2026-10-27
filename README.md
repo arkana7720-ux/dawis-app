@@ -23,7 +23,10 @@ Menggantikan Google Sheet "Data Dawis Yusril" dengan database Supabase
   Warga, lalu langsung mengisi warga. Tidak perlu impor Excel. Dashboard juga
   menampilkan checklist **Persiapan Awal** sampai keempat langkah selesai.
 - **Struktur Wilayah** — kelola hierarki Kelompok → Bangunan → Keluarga (KRT)
-  → Anggota. Bangunan bisa ditandai milik sendiri / kontrakan.
+  → Anggota. Bangunan bisa ditandai milik sendiri / kontrakan. Halaman ini
+  memakai pohon yang bisa dibuka-tutup: keluarga terlipat secara default,
+  aksi Edit/Hapus ada di menu **⋯** tiap baris, dan ada pencarian nama
+  warga/keluarga/bangunan dengan jejak lokasinya.
 - **Laporan** — rekapitulasi format mirip sheet lama, siap cetak dan ekspor
   CSV/Excel.
 - **Akun Saya** — ubah password sendiri, lihat username dan kelompok yang dikelola.
