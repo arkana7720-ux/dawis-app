@@ -32,6 +32,26 @@ function inisial(nama: string, username: string): string {
   return (dariNama || username.slice(0, 2) || "?").toUpperCase();
 }
 
+/** Siluet daun transparan untuk latar belakang & sidebar. */
+function Botanical({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 240 300" fill="none" aria-hidden className={className}>
+      <path
+        d="M120 292C120 214 120 118 120 10"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+      />
+      <path d="M120 232c-38-4-64-30-66-68 38 4 64 30 66 68Z" fill="currentColor" fillOpacity=".42" />
+      <path d="M120 186c34-6 56-30 58-64-34 6-56 30-58 64Z" fill="currentColor" fillOpacity=".32" />
+      <path d="M120 148c-32-4-54-26-56-58 32 4 54 26 56 58Z" fill="currentColor" fillOpacity=".26" />
+      <path d="M120 108c28-6 46-28 48-56-28 6-46 28-48 56Z" fill="currentColor" fillOpacity=".2" />
+      <path d="M120 72c-22-4-38-20-40-42 22 4 38 20 40 42Z" fill="currentColor" fillOpacity=".16" />
+      <path d="M120 40c18-4 30-18 32-36-18 4-30 18-32 36Z" fill="currentColor" fillOpacity=".12" />
+    </svg>
+  );
+}
+
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -98,8 +118,20 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const avatarText = inisial(me?.user.nama ?? "", me?.user.username ?? "");
 
   return (
-    <div className="min-h-screen">
-      <aside className="no-print fixed inset-y-0 left-0 z-30 hidden w-[260px] flex-col bg-gradient-to-b from-[#0F172A] via-[#0F172A] to-[#0B1120] md:flex">
+    <div className="relative min-h-screen">
+      <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        <div className="absolute -left-40 -top-32 h-[460px] w-[460px] rounded-full bg-emerald-200/30 blur-3xl" />
+        <div className="absolute -right-32 top-1/4 h-[420px] w-[420px] rounded-full bg-sky-200/25 blur-3xl" />
+        <div className="absolute -bottom-40 left-1/3 h-[460px] w-[460px] rounded-full bg-rose-200/20 blur-3xl" />
+        <Botanical className="absolute -right-12 top-20 h-[380px] w-[300px] rotate-[8deg] text-emerald-800 opacity-[0.07] md:right-16 md:top-24" />
+        <Botanical className="absolute -left-20 bottom-10 h-[340px] w-[280px] -rotate-[12deg] text-teal-800 opacity-[0.055] md:left-[300px]" />
+      </div>
+
+      <aside className="no-print fixed inset-y-0 left-0 z-30 hidden w-[260px] flex-col overflow-hidden border-r border-white/10 bg-gradient-to-b from-[#0F172A] via-[#101B2D] to-[#0B1120] md:flex">
+        <span aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+          <span className="absolute -left-16 -top-20 h-56 w-56 rounded-full bg-emerald-500/15 blur-3xl" />
+          <Botanical className="absolute -bottom-16 -right-20 h-[300px] w-[240px] -rotate-[18deg] text-emerald-300 opacity-[0.06]" />
+        </span>
         <div className="flex items-center gap-3 px-5 pb-7 pt-7">
           <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 text-white shadow-lg shadow-emerald-500/30">
             <Icon name="building" className="h-5 w-5" />
@@ -204,10 +236,10 @@ export default function AppShell({ children }: { children: ReactNode }) {
         </Link>
       </header>
 
-      <main className="pb-28 md:pb-10 md:pl-[260px]">
+      <main className="relative z-10 pb-28 md:pb-10 md:pl-[260px]">
         <div
           key={pathname}
-          className="animate-fade-up mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-8 lg:px-10"
+          className="animate-fade-up mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-9 lg:px-10"
         >
           {children}
         </div>
@@ -216,7 +248,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
       <nav
         className={`no-print fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 grid ${
           isAdmin ? "grid-cols-5" : "grid-cols-4"
-        } gap-1 rounded-2xl border border-slate-200/60 bg-white/85 p-1.5 shadow-xl shadow-slate-900/10 backdrop-blur-xl md:hidden`}
+        } gap-1 rounded-2xl border border-white/70 bg-white/75 p-1.5 shadow-xl shadow-slate-900/10 backdrop-blur-xl md:hidden`}
         style={{ marginBottom: "env(safe-area-inset-bottom)" }}
       >
         {NAV.map((n) => (

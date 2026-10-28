@@ -115,6 +115,7 @@ export default function LaporanPage() {
           <span>Dicetak: {today}</span>
         </div>
 
+        <div className="overflow-x-auto">
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="bg-slate-100 text-left text-[11px] uppercase tracking-wider text-slate-600">
@@ -148,10 +149,12 @@ export default function LaporanPage() {
             ))}
           </tbody>
         </table>
+        </div>
 
         <h2 className="mb-3 mt-8 text-sm font-extrabold uppercase tracking-wide text-slate-800">
           Distribusi Usia per Jenis Kelamin
         </h2>
+        <div className="overflow-x-auto">
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="bg-slate-100 text-[11px] uppercase tracking-wider text-slate-600">
@@ -183,10 +186,12 @@ export default function LaporanPage() {
             </tr>
           </tbody>
         </table>
+        </div>
 
         <h2 className="mb-3 mt-8 text-sm font-extrabold uppercase tracking-wide text-slate-800">
           Distribusi Kategori Usia Baru per Jenis Kelamin
         </h2>
+        <div className="overflow-x-auto">
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="bg-slate-100 text-[11px] uppercase tracking-wider text-slate-600">
@@ -217,10 +222,12 @@ export default function LaporanPage() {
             </tr>
           </tbody>
         </table>
+        </div>
 
         <h2 className="mb-3 mt-8 text-sm font-extrabold uppercase tracking-wide text-slate-800">
           Distribusi Pendidikan per Jenis Kelamin
         </h2>
+        <div className="overflow-x-auto">
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="bg-slate-100 text-[11px] uppercase tracking-wider text-slate-600">
@@ -251,6 +258,7 @@ export default function LaporanPage() {
             </tr>
           </tbody>
         </table>
+        </div>
 
         <div className="mt-12 flex justify-end">
           <div className="text-center text-sm">

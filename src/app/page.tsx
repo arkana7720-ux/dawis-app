@@ -107,7 +107,7 @@ const DETAIL_META: Record<DetailType, { title: string; desc?: string }> = {
   },
 };
 
-const KATEGORI_COLORS = ["#f59e0b", "#10b981", "#0ea5e9", "#6366f1", "#f43f5e"];
+const KATEGORI_COLORS = ["#fbbf24", "#34d399", "#38bdf8", "#818cf8", "#fb7185"];
 
 function ChartTip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
@@ -135,46 +135,55 @@ function StatCard({
   value,
   sub,
   icon,
-  grad,
+  tint,
+  accent,
   onClick,
 }: {
   label: string;
   value: string | number;
   sub?: string;
   icon: string;
-  grad: string;
+  tint: string;
+  accent: string;
   onClick?: () => void;
 }) {
   return (
     <div
       onClick={onClick}
       role={onClick ? "button" : undefined}
-      className={`group relative overflow-hidden rounded-2xl bg-gradient-to-br ${grad} p-3 text-white shadow-md shadow-slate-900/10 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl active:scale-[0.98] sm:p-5 ${
-        onClick ? "cursor-pointer" : ""
+      className={`group relative flex min-h-[140px] flex-col overflow-hidden rounded-2xl border border-white/70 bg-white/60 p-4 text-slate-900 shadow-[0_16px_40px_-28px_rgba(15,23,42,0.45)] ring-1 ring-slate-900/[0.04] backdrop-blur-md transition-all duration-300 sm:min-h-[168px] sm:p-5 ${
+        onClick
+          ? "cursor-pointer hover:-translate-y-1 hover:bg-white/80 hover:shadow-[0_24px_50px_-24px_rgba(15,23,42,0.35)] active:scale-[0.99]"
+          : ""
       }`}
     >
-      <span className="pointer-events-none absolute -right-5 -top-5 h-16 w-16 rounded-full bg-white/10 sm:h-24 sm:w-24" />
-      <span className="pointer-events-none absolute -bottom-6 -left-6 h-14 w-14 rounded-full bg-black/5" />
-      <div className="relative flex items-start justify-between gap-2">
+      <span className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${tint}`} />
+      <Icon
+        name="leaf"
+        className="pointer-events-none absolute -bottom-4 -right-4 h-20 w-20 text-slate-900 opacity-[0.04] transition-transform duration-500 group-hover:rotate-6 group-hover:scale-110"
+      />
+      <div className="relative flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="truncate text-[10px] font-semibold uppercase tracking-wide text-white/75 sm:text-xs">
+          <p className="text-[10px] font-bold uppercase leading-tight tracking-[0.12em] text-slate-600 sm:text-[11px]">
             {label}
           </p>
-          <p className="mt-1 text-lg font-extrabold leading-tight tracking-tight tabular-nums sm:mt-2 sm:text-[26px] sm:leading-none">
+          <p className="mt-2 text-[24px] font-extrabold leading-none tracking-tight tabular-nums text-slate-900 sm:text-[30px]">
             {value}
           </p>
           {sub && (
-            <p className="mt-0.5 truncate text-[9px] font-medium text-white/60 sm:text-[11px]">
+            <p className="mt-1.5 truncate text-[10px] font-medium text-slate-600 sm:text-[11px]">
               {sub}
             </p>
           )}
         </div>
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/15 ring-1 ring-inset ring-white/25 transition-transform group-hover:scale-110 sm:h-11 sm:w-11 sm:rounded-xl">
+        <span
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${accent} text-white shadow-lg shadow-slate-900/15 ring-1 ring-inset ring-white/30 transition-transform duration-300 group-hover:scale-110 sm:h-11 sm:w-11 sm:rounded-2xl`}
+        >
           <Icon name={icon} className="h-4 w-4 sm:h-5 sm:w-5" />
         </span>
       </div>
       {onClick && (
-        <span className="relative mt-2 hidden items-center gap-1 text-[10px] font-bold text-white/60 transition-colors group-hover:text-white sm:mt-3 sm:inline-flex sm:text-[11px]">
+        <span className="relative mt-auto hidden items-center gap-1 pt-3 text-[10px] font-bold text-slate-500 transition-colors group-hover:text-slate-800 sm:inline-flex sm:pt-4 sm:text-[11px]">
           Lihat detail
           <Icon name="chevron" className="h-3 w-3" />
         </span>
@@ -349,7 +358,7 @@ export default function DashboardPage() {
     return (
       <>
         <Skeleton className="h-9 w-56" />
-        <div className="mt-6 grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
+        <div className="mt-6 grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <Skeleton key={i} className="h-[84px] sm:h-[104px]" />
           ))}
@@ -380,18 +389,18 @@ export default function DashboardPage() {
 
   return (
     <>
-      <div className="mb-7 flex flex-wrap items-end justify-between gap-3">
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-[22px] font-extrabold tracking-tight text-slate-900 sm:text-2xl">
+          <h1 className="text-[26px] font-extrabold tracking-tight text-slate-900 sm:text-[30px]">
             Dashboard
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1.5 text-sm text-slate-500">
             Ringkasan data warga Dasa Wisma RT 04/RW 11 Rorotan
           </p>
         </div>
         <div className="flex items-center gap-2">
           {today && (
-            <span className="hidden rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-500 ring-1 ring-slate-200 sm:inline-flex">
+            <span className="hidden rounded-full border border-white/70 bg-white/70 px-3.5 py-1.5 text-xs font-semibold text-slate-600 shadow-sm shadow-slate-900/5 backdrop-blur-md sm:inline-flex">
               {today}
             </span>
           )}
@@ -438,8 +447,8 @@ export default function DashboardPage() {
         if (langkah.every((s) => s.done)) return null;
         const selesai = langkah.filter((s) => s.done).length;
         return (
-          <Card className="mb-4 overflow-hidden">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-emerald-100 bg-emerald-50/60 px-4 py-3 sm:px-5">
+          <Card className="mb-5 overflow-hidden">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-emerald-100/80 bg-emerald-50/50 px-5 py-4 sm:px-6">
               <div>
                 <p className="text-sm font-bold text-slate-800">Persiapan Awal</p>
                 <p className="text-xs text-slate-500">{selesai} dari 4 langkah selesai</p>
@@ -451,7 +460,7 @@ export default function DashboardPage() {
                 />
               </div>
             </div>
-            <div className="grid gap-2 p-3.5 sm:grid-cols-2 sm:p-4 lg:grid-cols-4">
+            <div className="grid gap-3 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-4">
               {langkah.map((s, i) => (
                 <Link
                   key={s.label}
@@ -488,20 +497,21 @@ export default function DashboardPage() {
         );
       })()}
 
-      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
-        <StatCard label="Bangunan" value={t.bangunan} sub="terdata" icon="building" grad="from-slate-500 to-slate-700" onClick={() => setDetail("bangunan")} />        <StatCard label="Keluarga" value={t.keluarga} sub="kepala rumah tangga" icon="key" grad="from-sky-500 to-blue-600" onClick={() => setDetail("keluarga")} />
-        <StatCard label="Total Individu" value={t.individu} sub="jiwa tercatat" icon="users" grad="from-emerald-500 to-teal-600" onClick={() => setDetail("individu")} />
-        <StatCard label="Laki-laki / Perempuan" value={`${t.laki} / ${t.perempuan}`} sub="rasio jenis kelamin" icon="family" grad="from-violet-500 to-purple-600" onClick={() => setDetail("lp")} />
-        <StatCard label="Balita" value={t.balita} sub="usia 0–4 tahun" icon="baby" grad="from-amber-400 to-orange-500" onClick={() => setDetail("balita")} />
-        <StatCard label="Lansia" value={t.lansia} sub="usia 60+ tahun" icon="elderly" grad="from-orange-500 to-red-500" onClick={() => setDetail("lansia")} />
-        <StatCard label="Ibu Hamil" value={t.ibu_hamil} sub="sedang hamil" icon="heart" grad="from-rose-600 to-red-600" onClick={() => setDetail("hamil")} />
-        <StatCard label="WUS" value={t.wus} sub="wanita usia subur" icon="heart" grad="from-pink-500 to-rose-500" onClick={() => setDetail("wus")} />
-        <StatCard label="PUS" value={t.pus} sub="pasangan usia subur" icon="report" grad="from-fuchsia-500 to-pink-600" onClick={() => setDetail("pus")} />
-        <StatCard label="Sudah Menikah" value={t.menikah} sub={subMenikah} icon="heart" grad="from-rose-500 to-pink-600" onClick={() => setDetail("menikah")} />
-        <StatCard label="Punya KTP" value={t.ktp} sub="usia 17 tahun ke atas" icon="idcard" grad="from-teal-500 to-cyan-600" onClick={() => setDetail("ktp")} />
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
+        <StatCard label="Bangunan" value={t.bangunan} sub="terdata" icon="building" tint="from-slate-100/90 via-white/40 to-slate-200/70" accent="from-slate-500 to-slate-700" onClick={() => setDetail("bangunan")} />
+        <StatCard label="Keluarga" value={t.keluarga} sub="kepala rumah tangga" icon="key" tint="from-sky-100/90 via-white/40 to-blue-100/70" accent="from-sky-500 to-blue-600" onClick={() => setDetail("keluarga")} />
+        <StatCard label="Total Individu" value={t.individu} sub="jiwa tercatat" icon="users" tint="from-emerald-100/90 via-white/40 to-teal-100/70" accent="from-emerald-500 to-teal-600" onClick={() => setDetail("individu")} />
+        <StatCard label="Laki-laki / Perempuan" value={`${t.laki}/${t.perempuan}`} sub="rasio jenis kelamin" icon="family" tint="from-violet-100/90 via-white/40 to-purple-100/70" accent="from-violet-500 to-purple-600" onClick={() => setDetail("lp")} />
+        <StatCard label="Balita" value={t.balita} sub="usia 0–4 tahun" icon="baby" tint="from-amber-100/90 via-white/40 to-orange-100/70" accent="from-amber-400 to-orange-500" onClick={() => setDetail("balita")} />
+        <StatCard label="Lansia" value={t.lansia} sub="usia 60+ tahun" icon="elderly" tint="from-orange-100/90 via-white/40 to-red-100/70" accent="from-orange-500 to-red-500" onClick={() => setDetail("lansia")} />
+        <StatCard label="Ibu Hamil" value={t.ibu_hamil} sub="sedang hamil" icon="heart" tint="from-rose-100/90 via-white/40 to-red-100/70" accent="from-rose-600 to-red-600" onClick={() => setDetail("hamil")} />
+        <StatCard label="WUS" value={t.wus} sub="wanita usia subur" icon="heart" tint="from-pink-100/90 via-white/40 to-rose-100/70" accent="from-pink-500 to-rose-500" onClick={() => setDetail("wus")} />
+        <StatCard label="PUS" value={t.pus} sub="pasangan usia subur" icon="report" tint="from-fuchsia-100/90 via-white/40 to-pink-100/70" accent="from-fuchsia-500 to-pink-600" onClick={() => setDetail("pus")} />
+        <StatCard label="Sudah Menikah" value={t.menikah} sub={subMenikah} icon="heart" tint="from-rose-100/90 via-white/40 to-pink-100/70" accent="from-rose-500 to-pink-600" onClick={() => setDetail("menikah")} />
+        <StatCard label="Punya KTP" value={t.ktp} sub="usia 17 tahun ke atas" icon="idcard" tint="from-teal-100/90 via-white/40 to-cyan-100/70" accent="from-teal-500 to-cyan-600" onClick={() => setDetail("ktp")} />
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-5">
+      <div className="mt-5 grid gap-5 lg:grid-cols-5">
         <Card className="lg:col-span-3">
           <CardHeader
             title="Distribusi Usia per Jenis Kelamin"
@@ -510,10 +520,10 @@ export default function DashboardPage() {
           <div className="h-72 px-2 pb-2 pt-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={stats.distribusiUsia} barGap={3} margin={{ top: 4, right: 8, left: -18, bottom: 0 }}>
-                <CartesianGrid vertical={false} stroke="#eef2f6" strokeDasharray="4 4" />
+                <CartesianGrid vertical={false} stroke="#e2e8f0" strokeDasharray="4 4" />
                 <XAxis
                   dataKey="label"
-                  tick={{ fontSize: 10, fill: "#94a3b8", fontWeight: 600 }}
+                  tick={{ fontSize: 10, fill: "#64748b", fontWeight: 600 }}
                   interval={0}
                   angle={-45}
                   textAnchor="end"
@@ -521,7 +531,7 @@ export default function DashboardPage() {
                   axisLine={false}
                   tickLine={false}
                 />
-                <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} allowDecimals={false} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: "#64748b" }} allowDecimals={false} axisLine={false} tickLine={false} />
                 <Tooltip content={<ChartTip />} cursor={{ fill: "rgba(148,163,184,0.08)" }} />
                 <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} iconType="circle" iconSize={8} />
                 <Bar dataKey="L" name="Laki-laki" fill="#0ea5e9" radius={[4, 4, 0, 0]} maxBarSize={18} />
@@ -562,7 +572,7 @@ export default function DashboardPage() {
               </p>
             </div>
           </div>
-          <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5 border-t border-slate-100 px-4 py-3">
+          <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5 border-t border-white/70 px-4 py-3">
             {pieData.map((d, i) => (
               <span key={d.name} className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500">
                 <span className="h-2 w-2 rounded-full" style={{ background: KATEGORI_COLORS[i] }} />
@@ -574,12 +584,12 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <Card className="mt-4 overflow-hidden">
+      <Card className="mt-5 overflow-hidden">
         <CardHeader title="Rekapitulasi per Kelompok" desc="Perbandingan antar kelompok dasawisma" />
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-sm">
             <thead>
-              <tr className="border-b border-slate-100 bg-slate-50/60 text-left text-[11px] uppercase tracking-wider text-slate-400">
+              <tr className="border-b border-white/70 bg-white/40 text-left text-[11px] uppercase tracking-wider text-slate-500">
                 <th className="px-5 py-3 font-bold">Kelompok</th>
                 <th className="px-3 py-3 text-center font-bold">Bangunan</th>
                 <th className="px-3 py-3 text-center font-bold">Keluarga</th>
@@ -591,9 +601,9 @@ export default function DashboardPage() {
                 <th className="px-3 py-3 text-center font-bold">PUS</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody className="divide-y divide-slate-100/70">
               {stats.byKelompok.map((k) => (
-                <tr key={String(k.id)} className="transition-colors hover:bg-emerald-50/30">
+                <tr key={String(k.id)} className="transition-colors hover:bg-white/50">
                   <td className="px-5 py-3.5">
                     <p className="font-bold text-slate-800">{k.nama}</p>
                     <p className="mt-0.5 font-mono text-[11px] text-slate-400">{k.kode}</p>
@@ -629,7 +639,7 @@ export default function DashboardPage() {
         </div>
       </Card>
 
-      <Card className="mt-4 overflow-hidden">
+      <Card className="mt-5 overflow-hidden">
         <CardHeader
           title="Distribusi Kategori Usia Baru per Jenis Kelamin"
           desc="Balita 0-5 · Anak 6-9 · Remaja 10-24 · Dewasa 25-59 · Lansia 60+"
@@ -637,16 +647,16 @@ export default function DashboardPage() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[480px] text-sm">
             <thead>
-              <tr className="border-b border-slate-100 bg-slate-50/60 text-left text-[11px] uppercase tracking-wider text-slate-400">
+              <tr className="border-b border-white/70 bg-white/40 text-left text-[11px] uppercase tracking-wider text-slate-500">
                 <th className="px-5 py-3 font-bold">Kategori Usia Baru</th>
                 <th className="px-3 py-3 text-center font-bold">Laki-laki</th>
                 <th className="px-3 py-3 text-center font-bold">Perempuan</th>
                 <th className="px-3 py-3 text-center font-bold">Jumlah</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody className="divide-y divide-slate-100/70">
               {stats.distribusiKategoriBaru.map((d) => (
-                <tr key={d.label} className="transition-colors hover:bg-emerald-50/30">
+                <tr key={d.label} className="transition-colors hover:bg-white/50">
                   <td className="px-5 py-3.5 font-semibold text-slate-800">
                     {d.label} · {d.nama}
                   </td>
@@ -668,7 +678,7 @@ export default function DashboardPage() {
         </div>
       </Card>
 
-      <Card className="mt-4 overflow-hidden">
+      <Card className="mt-5 overflow-hidden">
         <CardHeader
           title="Distribusi Pendidikan per Jenis Kelamin"
           desc="Belum Sekolah 0-3 · Paud/TK 4-6 · SD 7-12 · SMP 13-15 · SMA 16-18 · S1 19-22 · Lainnya 23+"
@@ -676,16 +686,16 @@ export default function DashboardPage() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[480px] text-sm">
             <thead>
-              <tr className="border-b border-slate-100 bg-slate-50/60 text-left text-[11px] uppercase tracking-wider text-slate-400">
+              <tr className="border-b border-white/70 bg-white/40 text-left text-[11px] uppercase tracking-wider text-slate-500">
                 <th className="px-5 py-3 font-bold">Pendidikan</th>
                 <th className="px-3 py-3 text-center font-bold">Laki-laki</th>
                 <th className="px-3 py-3 text-center font-bold">Perempuan</th>
                 <th className="px-3 py-3 text-center font-bold">Jumlah</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody className="divide-y divide-slate-100/70">
               {stats.distribusiPendidikan.map((d) => (
-                <tr key={d.label} className="transition-colors hover:bg-emerald-50/30">
+                <tr key={d.label} className="transition-colors hover:bg-white/50">
                   <td className="px-5 py-3.5 font-semibold text-slate-800">
                     {d.label} · {d.nama}
                   </td>

@@ -39,6 +39,7 @@ const ICONS: Record<string, string> = {
     "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z",
   idcard:
     "M3 6a2 2 0 012-2h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6zm3 2.5a2 2 0 104 0 2 2 0 00-4 0zM5 16v-.5a3.5 3.5 0 017 0v.5H5zm8-6h6m-6 3h4",
+  leaf: "M5 21c0-8 5-14 14-16-1 9-6 14-14 16zm0 0c3-5 7-9 12-11",
 };
 
 const FILLED = new Set(["wa"]);
@@ -85,7 +86,7 @@ export function Card({
 }) {
   return (
     <div
-      className={`rounded-2xl bg-white ring-1 ring-slate-200/70 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-12px_rgba(15,23,42,0.08)] ${className}`}
+      className={`rounded-2xl border border-white/70 bg-white/60 shadow-[0_18px_50px_-30px_rgba(15,23,42,0.35)] ring-1 ring-slate-900/[0.04] backdrop-blur-md ${className}`}
     >
       {children}
     </div>
@@ -102,10 +103,10 @@ export function CardHeader({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-5 py-4">
+    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/70 px-5 py-4 sm:px-6 sm:py-5">
       <div>
-        <h2 className="text-sm font-bold text-slate-800">{title}</h2>
-        {desc && <p className="mt-0.5 text-xs text-slate-400">{desc}</p>}
+        <h2 className="text-sm font-bold tracking-tight text-slate-800">{title}</h2>
+        {desc && <p className="mt-0.5 text-xs text-slate-500">{desc}</p>}
       </div>
       {action}
     </div>
@@ -122,12 +123,12 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+    <div className="mb-7 flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 className="text-[22px] font-extrabold tracking-tight text-slate-900 sm:text-2xl">
+        <h1 className="text-[24px] font-extrabold tracking-tight text-slate-900 sm:text-[28px]">
           {title}
         </h1>
-        {subtitle && <p className="mt-1 text-sm text-slate-500">{subtitle}</p>}
+        {subtitle && <p className="mt-1.5 text-sm text-slate-500">{subtitle}</p>}
       </div>
       {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
     </div>
@@ -160,7 +161,7 @@ export function Btn({
     primary:
       "bg-emerald-600 text-white shadow-sm shadow-emerald-600/25 hover:bg-emerald-500",
     secondary:
-      "bg-white text-slate-700 ring-1 ring-slate-200 shadow-xs hover:bg-slate-50 hover:ring-slate-300",
+      "bg-white/70 text-slate-700 ring-1 ring-slate-200/80 shadow-xs backdrop-blur-md hover:bg-white/90 hover:ring-slate-300",
     danger: "bg-red-600 text-white shadow-sm shadow-red-600/25 hover:bg-red-500",
     ghost: "text-slate-500 hover:bg-slate-100 hover:text-slate-800",
   };
@@ -235,7 +236,7 @@ export function Field({
 }
 
 export const inputCls =
-  "w-full rounded-xl border-0 bg-white px-3.5 py-2.5 text-sm text-slate-900 ring-1 ring-slate-200 outline-none transition-shadow placeholder:text-slate-400 hover:ring-slate-300 focus:ring-2 focus:ring-emerald-500 focus-visible:outline-none";
+  "w-full rounded-xl border-0 bg-white/80 px-3.5 py-2.5 text-sm text-slate-900 ring-1 ring-slate-200/80 outline-none transition-shadow placeholder:text-slate-400 backdrop-blur-md hover:ring-slate-300 focus:ring-2 focus:ring-emerald-500 focus-visible:outline-none";
 
 export function Badge({
   children,
