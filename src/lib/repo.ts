@@ -392,6 +392,7 @@ export async function getStats(db: SupabaseClient) {
       ibuHamil: w.filter((x) => x.is_hamil).length,
       menikah: pasanganInfo.menikah.filter((x) => x.kelompok_id === k.id).length,
       pasangan: pasanganInfo.pasangan.filter(([a]) => a.kelompok_id === k.id).length,
+      ktp: w.filter((x) => x.usia !== null && x.usia >= 17).length,
     };
   });
 
@@ -424,6 +425,7 @@ export async function getStats(db: SupabaseClient) {
       ibu_hamil: a.ibu_hamil + k.ibuHamil,
       menikah: a.menikah + k.menikah,
       pasangan: a.pasangan + k.pasangan,
+      ktp: a.ktp + k.ktp,
     }),
     {
       bangunan: 0, keluarga: 0, individu: 0, laki: 0, perempuan: 0,
@@ -432,7 +434,7 @@ export async function getStats(db: SupabaseClient) {
       pend0_3: 0, pend4_6: 0, pend7_12: 0, pend13_15: 0, pend16_18: 0, pend19_22: 0, pend23: 0,
       pus: 0, wus: 0,
       ibu_hamil: 0,
-      menikah: 0, pasangan: 0,
+      menikah: 0, pasangan: 0, ktp: 0,
     }
   );
 

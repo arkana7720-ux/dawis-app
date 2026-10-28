@@ -84,7 +84,8 @@ type DetailType =
   | "hamil"
   | "wus"
   | "pus"
-  | "menikah";
+  | "menikah"
+  | "ktp";
 
 const DETAIL_META: Record<DetailType, { title: string; desc?: string }> = {
   bangunan: { title: "Daftar Bangunan" },
@@ -99,6 +100,10 @@ const DETAIL_META: Record<DetailType, { title: string; desc?: string }> = {
   menikah: {
     title: "Sudah Menikah",
     desc: "Suami-istri yang tercatat dalam satu KK, tanpa batas usia",
+  },
+  ktp: {
+    title: "Punya KTP",
+    desc: "Warga aktif usia 17 tahun ke atas — perkiraan sudah memiliki KTP",
   },
 };
 
@@ -306,6 +311,7 @@ export default function DashboardPage() {
     if (detail === "hamil") rows = rows.filter((w) => w.is_hamil);
     if (detail === "wus") rows = rows.filter((w) => w.wus);
     if (detail === "pus") rows = rows.filter((w) => w.pus);
+    if (detail === "ktp") rows = rows.filter((w) => w.usia !== null && w.usia >= 17);
     rows = rows.filter((w) => match(`${w.nama} ${w.bangunan_nama} ${w.kelompok_nama}`));
     if (detail === "hamil")
       return [...rows].sort(
@@ -356,6 +362,12 @@ export default function DashboardPage() {
     );
 
   const t = stats.totals;
+  const subMenikah = [
+    ...stats.byKelompok.map(
+      (k) => `${String(k.nama).replace(/^Kelompok\s+/i, "K")} ${k.menikah}`
+    ),
+    `${t.pasangan} pasangan`,
+  ].join(" · ");
   const pieData = [
     { name: "Balita", value: t.balita },
     { name: "Anak", value: t.anak },
@@ -485,52 +497,9 @@ export default function DashboardPage() {
         <StatCard label="Ibu Hamil" value={t.ibu_hamil} sub="sedang hamil" icon="heart" grad="from-rose-600 to-red-600" onClick={() => setDetail("hamil")} />
         <StatCard label="WUS" value={t.wus} sub="wanita usia subur" icon="heart" grad="from-pink-500 to-rose-500" onClick={() => setDetail("wus")} />
         <StatCard label="PUS" value={t.pus} sub="pasangan usia subur" icon="report" grad="from-fuchsia-500 to-pink-600" onClick={() => setDetail("pus")} />
+        <StatCard label="Sudah Menikah" value={t.menikah} sub={subMenikah} icon="heart" grad="from-rose-500 to-pink-600" onClick={() => setDetail("menikah")} />
+        <StatCard label="Punya KTP" value={t.ktp} sub="usia 17 tahun ke atas" icon="idcard" grad="from-teal-500 to-cyan-600" onClick={() => setDetail("ktp")} />
       </div>
-
-      <button
-        type="button"
-        onClick={() => setDetail("menikah")}
-        className="group relative mt-2.5 w-full overflow-hidden rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 p-4 text-left text-white shadow-md shadow-slate-900/10 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl active:scale-[0.99] sm:mt-3 sm:p-5"
-      >
-        <span className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-white/10" />
-        <span className="pointer-events-none absolute -bottom-10 left-1/3 h-24 w-24 rounded-full bg-black/5" />
-        <div className="relative flex flex-wrap items-center gap-x-4 gap-y-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/15 ring-1 ring-inset ring-white/25 transition-transform group-hover:scale-110 sm:h-12 sm:w-12">
-            <Icon name="heart" className="h-5 w-5" />
-          </span>
-          <div className="min-w-[168px] flex-1">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-white/75 sm:text-xs">
-              Sudah Menikah
-            </p>
-            <p className="mt-0.5 text-2xl font-extrabold leading-none tracking-tight tabular-nums sm:text-[30px]">
-              {t.menikah}{" "}
-              <span className="text-sm font-semibold text-white/80">orang</span>
-            </p>
-            <p className="mt-1 text-[11px] font-medium text-white/70 sm:text-xs">
-              {t.pasangan} pasangan tercatat · tanpa batas usia
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-            {stats.byKelompok.map((k) => (
-              <span
-                key={String(k.id)}
-                className="rounded-lg bg-white/15 px-2.5 py-1.5 text-[11px] font-semibold ring-1 ring-inset ring-white/20 sm:text-xs"
-              >
-                {k.nama}: <span className="tabular-nums">{k.menikah}</span>
-              </span>
-            ))}
-            {t.kk_perlu_dicek > 0 && (
-              <span className="rounded-lg bg-amber-300/20 px-2.5 py-1.5 text-[11px] font-semibold text-amber-50 ring-1 ring-inset ring-amber-200/30 sm:text-xs">
-                Perlu dicek: {t.kk_perlu_dicek} KK
-              </span>
-            )}
-            <span className="hidden items-center gap-1 text-[11px] font-bold text-white/70 transition-colors group-hover:text-white sm:inline-flex">
-              Lihat detail
-              <Icon name="chevron" className="h-3 w-3" />
-            </span>
-          </div>
-        </div>
-      </button>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-5">
         <Card className="lg:col-span-3">

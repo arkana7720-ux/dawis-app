@@ -18,7 +18,9 @@ Menggantikan Google Sheet "Data Dawis Yusril" dengan database Supabase
   pasangannya. Perhitungannya dari pasangan yang tercatat dalam satu KK,
   **tanpa batas usia**, jadi pasangan lansia yang tidak lagi masuk PUS/WUS tetap
   terhitung. KK yang belum punya pasangan tercatat ditampilkan terpisah sebagai
-  **Perlu dicek** (tidak diubah otomatis).
+  **Perlu dicek** (tidak diubah otomatis). Kartu **Punya KTP** menghitung warga
+  aktif **usia 17 tahun ke atas** (di bawah 17 tidak dihitung) dan bisa diklik
+  untuk melihat daftarnya.
 - **Data Warga** — tabel lengkap dengan pencarian & filter (kelompok, kategori
   usia, jenis kelamin, WUS/PUS), tambah/edit/hapus. Form tambah warga
   berpanduan: pilih keluarga lewat pencarian (atau buat keluarga/bangunan baru

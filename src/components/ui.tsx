@@ -37,6 +37,8 @@ const ICONS: Record<string, string> = {
   swap: "M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4",
   calendar:
     "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z",
+  idcard:
+    "M3 6a2 2 0 012-2h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6zm3 2.5a2 2 0 104 0 2 2 0 00-4 0zM5 16v-.5a3.5 3.5 0 017 0v.5H5zm8-6h6m-6 3h4",
 };
 
 const FILLED = new Set(["wa"]);
