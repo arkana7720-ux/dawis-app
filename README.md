@@ -13,6 +13,12 @@ Menggantikan Google Sheet "Data Dawis Yusril" dengan database Supabase
   termasuk lewat tautan langsung.
 - **Dashboard** — kartu statistik, grafik distribusi usia per jenis kelamin,
   komposisi kategori usia, rekap per kelompok (dihitung otomatis dari data).
+  Ada kartu **Sudah Menikah** (jumlah orang + pasangan, rincian Kelompok 1 dan
+  Kelompok 2) yang bisa diklik untuk melihat daftar suami-istri beserta
+  pasangannya. Perhitungannya dari pasangan yang tercatat dalam satu KK,
+  **tanpa batas usia**, jadi pasangan lansia yang tidak lagi masuk PUS/WUS tetap
+  terhitung. KK yang belum punya pasangan tercatat ditampilkan terpisah sebagai
+  **Perlu dicek** (tidak diubah otomatis).
 - **Data Warga** — tabel lengkap dengan pencarian & filter (kelompok, kategori
   usia, jenis kelamin, WUS/PUS), tambah/edit/hapus. Form tambah warga
   berpanduan: pilih keluarga lewat pencarian (atau buat keluarga/bangunan baru

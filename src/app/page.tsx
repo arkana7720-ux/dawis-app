@@ -27,7 +27,7 @@ import {
   Modal,
   Skeleton,
 } from "@/components/ui";
-import { formatTanggal, KATEGORI_USIA_LIST } from "@/lib/calc";
+import { formatTanggal, KATEGORI_USIA_LIST, hitungPasangan } from "@/lib/calc";
 import { fetchApi } from "@/lib/clientApi";
 
 interface Stats {
@@ -41,6 +41,7 @@ interface Stats {
 
 interface WargaRow {
   id: number;
+  keluarga_id: number | null;
   nama: string;
   hubungan: string;
   jenis_kelamin: string;
@@ -82,7 +83,8 @@ type DetailType =
   | "lansia"
   | "hamil"
   | "wus"
-  | "pus";
+  | "pus"
+  | "menikah";
 
 const DETAIL_META: Record<DetailType, { title: string; desc?: string }> = {
   bangunan: { title: "Daftar Bangunan" },
@@ -94,6 +96,10 @@ const DETAIL_META: Record<DetailType, { title: string; desc?: string }> = {
   hamil: { title: "Ibu Hamil", desc: "Warga perempuan aktif yang sedang hamil" },
   wus: { title: "WUS", desc: "Wanita Usia Subur (15–49 th)" },
   pus: { title: "PUS", desc: "Pasangan Usia Subur" },
+  menikah: {
+    title: "Sudah Menikah",
+    desc: "Suami-istri yang tercatat dalam satu KK, tanpa batas usia",
+  },
 };
 
 const KATEGORI_COLORS = ["#f59e0b", "#10b981", "#0ea5e9", "#6366f1", "#f43f5e"];
@@ -181,6 +187,7 @@ export default function DashboardPage() {
   const [warga, setWarga] = useState<WargaRow[] | null>(null);
   const [dErr, setDErr] = useState("");
   const [dq, setDq] = useState("");
+  const [dKelompok, setDKelompok] = useState("");
   const [cetak, setCetak] = useState(false);
 
   const cetakPdf = async () => {
@@ -227,6 +234,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!detail) return;
     setDq("");
+    setDKelompok("");
     setDErr("");
     const needTree = detail === "bangunan" || detail === "keluarga";
     if (needTree && !tree) {
@@ -240,6 +248,11 @@ export default function DashboardPage() {
         .catch((e) => setDErr(e.message));
     }
   }, [detail, tree, warga]);
+
+  const pasanganInfo = useMemo(() => {
+    if (!warga) return null;
+    return hitungPasangan(warga.filter((w) => w.status_warga === "aktif"));
+  }, [warga]);
 
   const detailRows = useMemo(() => {
     const term = dq.toLowerCase().trim();
@@ -278,6 +291,15 @@ export default function DashboardPage() {
         .filter((f) => match(`${f.nama} ${f.bangunan} ${f.kelompok}`));
     }
     if (!warga) return [];
+    if (detail === "menikah") {
+      if (!pasanganInfo) return [];
+      let rows = pasanganInfo.menikah;
+      if (dKelompok) rows = rows.filter((w) => w.kelompok_nama === dKelompok);
+      return rows.filter((w) => {
+        const p = pasanganInfo.pasanganDari.get(w.id);
+        return match(`${w.nama} ${w.bangunan_nama} ${w.kelompok_nama} ${p?.nama ?? ""}`);
+      });
+    }
     let rows = warga.filter((w) => w.status_warga === "aktif");
     if (detail === "balita") rows = rows.filter((w) => w.kategori === "Balita");
     if (detail === "lansia") rows = rows.filter((w) => w.kategori === "Lansia");
@@ -292,7 +314,20 @@ export default function DashboardPage() {
           (a.hpl_kehamilan || "9999").localeCompare(b.hpl_kehamilan || "9999")
       );
     return rows;
-  }, [detail, dq, tree, warga]);
+  }, [detail, dq, dKelompok, tree, warga, pasanganInfo]);
+
+  const perluDicekRows = useMemo(() => {
+    if (detail !== "menikah" || !pasanganInfo) return [];
+    const term = dq.toLowerCase().trim();
+    return pasanganInfo.perluDicek
+      .filter((k) => !dKelompok || (k.anggota[0]?.kelompok_nama ?? "") === dKelompok)
+      .filter((k) => {
+        if (!term) return true;
+        return k.anggota.some((w) =>
+          `${w.nama} ${w.hubungan ?? ""}`.toLowerCase().includes(term)
+        );
+      });
+  }, [detail, dq, dKelompok, pasanganInfo]);
 
   const closeDetail = () => setDetail(null);
   const needTree = detail === "bangunan" || detail === "keluarga";
@@ -451,6 +486,51 @@ export default function DashboardPage() {
         <StatCard label="WUS" value={t.wus} sub="wanita usia subur" icon="heart" grad="from-pink-500 to-rose-500" onClick={() => setDetail("wus")} />
         <StatCard label="PUS" value={t.pus} sub="pasangan usia subur" icon="report" grad="from-fuchsia-500 to-pink-600" onClick={() => setDetail("pus")} />
       </div>
+
+      <button
+        type="button"
+        onClick={() => setDetail("menikah")}
+        className="group relative mt-2.5 w-full overflow-hidden rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 p-4 text-left text-white shadow-md shadow-slate-900/10 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl active:scale-[0.99] sm:mt-3 sm:p-5"
+      >
+        <span className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-white/10" />
+        <span className="pointer-events-none absolute -bottom-10 left-1/3 h-24 w-24 rounded-full bg-black/5" />
+        <div className="relative flex flex-wrap items-center gap-x-4 gap-y-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/15 ring-1 ring-inset ring-white/25 transition-transform group-hover:scale-110 sm:h-12 sm:w-12">
+            <Icon name="heart" className="h-5 w-5" />
+          </span>
+          <div className="min-w-[168px] flex-1">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-white/75 sm:text-xs">
+              Sudah Menikah
+            </p>
+            <p className="mt-0.5 text-2xl font-extrabold leading-none tracking-tight tabular-nums sm:text-[30px]">
+              {t.menikah}{" "}
+              <span className="text-sm font-semibold text-white/80">orang</span>
+            </p>
+            <p className="mt-1 text-[11px] font-medium text-white/70 sm:text-xs">
+              {t.pasangan} pasangan tercatat · tanpa batas usia
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            {stats.byKelompok.map((k) => (
+              <span
+                key={String(k.id)}
+                className="rounded-lg bg-white/15 px-2.5 py-1.5 text-[11px] font-semibold ring-1 ring-inset ring-white/20 sm:text-xs"
+              >
+                {k.nama}: <span className="tabular-nums">{k.menikah}</span>
+              </span>
+            ))}
+            {t.kk_perlu_dicek > 0 && (
+              <span className="rounded-lg bg-amber-300/20 px-2.5 py-1.5 text-[11px] font-semibold text-amber-50 ring-1 ring-inset ring-amber-200/30 sm:text-xs">
+                Perlu dicek: {t.kk_perlu_dicek} KK
+              </span>
+            )}
+            <span className="hidden items-center gap-1 text-[11px] font-bold text-white/70 transition-colors group-hover:text-white sm:inline-flex">
+              Lihat detail
+              <Icon name="chevron" className="h-3 w-3" />
+            </span>
+          </div>
+        </div>
+      </button>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-5">
         <Card className="lg:col-span-3">
@@ -961,6 +1041,24 @@ export default function DashboardPage() {
           value={dq}
           onChange={(e) => setDq(e.target.value)}
         />
+        {detail === "menikah" && (
+          <div className="mb-3 flex flex-wrap gap-1.5">
+            {["", ...stats.byKelompok.map((k) => String(k.nama))].map((nama) => (
+              <button
+                key={nama || "semua"}
+                type="button"
+                onClick={() => setDKelompok(nama)}
+                className={`rounded-lg px-3 py-1.5 text-xs font-semibold ring-1 transition-colors ${
+                  dKelompok === nama
+                    ? "bg-rose-600 text-white ring-rose-600"
+                    : "bg-white text-slate-600 ring-slate-200 hover:bg-slate-50"
+                }`}
+              >
+                {nama || "Semua"}
+              </button>
+            ))}
+          </div>
+        )}
         {dErr ? (
           <ErrorState message={dErr} onRetry={retryDetail} />
         ) : dLoading ? (
@@ -1012,7 +1110,41 @@ export default function DashboardPage() {
                       </span>
                     </div>
                   ))
-                : (detailRows as WargaRow[]).map((w) => (
+                : detail === "menikah"
+                  ? (detailRows as WargaRow[]).map((w) => {
+                      const p = pasanganInfo?.pasanganDari.get(w.id);
+                      return (
+                        <div key={w.id} className="flex items-center gap-3 rounded-xl bg-slate-50/80 px-3 py-2.5 ring-1 ring-inset ring-transparent transition-all hover:bg-white hover:ring-slate-200">
+                          <Avatar name={w.nama} size="sm" />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-semibold text-slate-800">{w.nama}</p>
+                            <p className="truncate text-xs text-slate-400">
+                              {p ? (
+                                <>
+                                  Pasangan:{" "}
+                                  <span className="font-medium text-slate-600">{p.nama}</span>
+                                </>
+                              ) : (
+                                "Pasangan tidak tercatat"
+                              )}
+                            </p>
+                            <p className="truncate text-xs text-slate-400 sm:hidden">
+                              {w.bangunan_nama} — {w.kelompok_nama}
+                            </p>
+                          </div>
+                          <div className="shrink-0 text-right">
+                            <p className="text-sm font-bold tabular-nums text-slate-700">
+                              {w.usia ?? "-"}{" "}
+                              <span className="text-[10px] font-medium text-slate-400">th</span>
+                            </p>
+                            <p className="hidden text-[11px] text-slate-400 sm:block">
+                              {w.bangunan_nama} — {w.kelompok_nama}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })
+                  : (detailRows as WargaRow[]).map((w) => (
                     <div key={w.id} className="flex items-center gap-3 rounded-xl bg-slate-50/80 px-3 py-2.5 ring-1 ring-inset ring-transparent transition-all hover:bg-white hover:ring-slate-200">
                       <Avatar name={w.nama} size="sm" />
                       <div className="min-w-0 flex-1">
@@ -1046,6 +1178,40 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   )))}
+          </div>
+        )}
+        {detail === "menikah" && !dErr && !dLoading && perluDicekRows.length > 0 && (
+          <div className="mt-4 rounded-xl bg-amber-50/70 p-3 ring-1 ring-inset ring-amber-200/70">
+            <p className="flex items-center gap-1.5 text-xs font-bold text-amber-800">
+              <Icon name="alert" className="h-3.5 w-3.5" />
+              Perlu dicek: {perluDicekRows.length} KK
+            </p>
+            <p className="mt-0.5 text-[11px] leading-relaxed text-amber-700/80">
+              KK ini belum punya pasangan tercatat, jadi belum dihitung sebagai sudah menikah.
+            </p>
+            <div className="mt-2 max-h-40 space-y-1 overflow-y-auto pr-1">
+              {perluDicekRows.map((k) => (
+                <div key={k.keluarga_id} className="rounded-lg bg-white/70 px-2.5 py-1.5">
+                  <p className="truncate text-xs font-semibold text-slate-700">
+                    {k.kepala?.nama ?? k.anggota[0]?.nama ?? "Tanpa nama"}
+                    {k.kepala?.usia != null && (
+                      <span className="font-normal text-slate-400"> · {k.kepala.usia} th</span>
+                    )}
+                    <span className="font-normal text-slate-400">
+                      {" "}— {k.anggota[0]?.kelompok_nama ?? ""}
+                    </span>
+                  </p>
+                  <p className="truncate text-[11px] text-slate-400">
+                    {k.anggota
+                      .map(
+                        (w) =>
+                          `${w.hubungan || "?"}${w.usia != null ? ` (${w.usia})` : ""}`
+                      )
+                      .join(" · ")}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </Modal>

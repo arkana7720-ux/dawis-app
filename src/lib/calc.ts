@@ -89,6 +89,112 @@ export function isPUS(w: WargaLike, usia: number | null): boolean {
   return isWUS(w, usia) && isMarried(w);
 }
 
+export interface WargaPasanganLike {
+  id: number;
+  keluarga_id: number | null;
+  nama: string;
+  hubungan?: string | null;
+  jenis_kelamin?: string | null;
+  usia?: number | null;
+  status_warga?: string | null;
+}
+
+export interface KkPerluDicek<T extends WargaPasanganLike> {
+  keluarga_id: number;
+  kepala: T | null;
+  anggota: T[];
+}
+
+export interface HasilPasangan<T extends WargaPasanganLike> {
+  /** Warga yang sudah menikah (pasangan tercatat dalam satu KK). */
+  menikah: T[];
+  /** id warga -> pasangannya. */
+  pasanganDari: Map<number, T>;
+  /** Daftar pasangan yang terbentuk (satu entri = satu pasangan). */
+  pasangan: Array<[T, T]>;
+  /** KK yang belum punya pasangan tercatat, jadi belum dihitung menikah. */
+  perluDicek: Array<KkPerluDicek<T>>;
+}
+
+/** Hubungan yang menandakan seseorang adalah suami/istri dalam KK-nya. */
+export function isHubunganPasangan(hubungan?: string | null): boolean {
+  const h = (hubungan || "").trim().toLowerCase();
+  return h === "istri" || h === "suami" || h === "krt/istri" || h === "krt/suami";
+}
+
+export function isKepalaKeluarga(hubungan?: string | null): boolean {
+  return (hubungan || "").trim().toUpperCase().startsWith("KRT");
+}
+
+/**
+ * Menghitung warga yang sudah menikah dari pasangan suami-istri yang tercatat
+ * dalam satu KK. Sengaja **tanpa batas usia**, supaya pasangan lansia yang
+ * tidak lagi masuk PUS/WUS tetap terhitung.
+ *
+ * Satu sumber perhitungan dipakai oleh angka card dashboard dan daftar detail,
+ * agar keduanya tidak pernah berbeda.
+ */
+export function hitungPasangan<T extends WargaPasanganLike>(
+  warga: T[]
+): HasilPasangan<T> {
+  const perKk = new Map<number, T[]>();
+  for (const w of warga) {
+    if (w.keluarga_id === null || w.keluarga_id === undefined) continue;
+    const list = perKk.get(w.keluarga_id);
+    if (list) list.push(w);
+    else perKk.set(w.keluarga_id, [w]);
+  }
+
+  const menikah: T[] = [];
+  const pasanganDari = new Map<number, T>();
+  const pasangan: Array<[T, T]> = [];
+  const perluDicek: Array<KkPerluDicek<T>> = [];
+
+  for (const [keluarga_id, list] of perKk) {
+    const kepala = list.find((w) => isKepalaKeluarga(w.hubungan)) ?? null;
+    const pendamping = list.filter(
+      (w) => isHubunganPasangan(w.hubungan) && w.id !== kepala?.id
+    );
+
+    // Pasangan hanya diakui kalau dua orang tercatat: kepala keluarga dan
+    // suami/istri. KRT yang ditandai "KRT/Suami" atau "KRT/Istri" tanpa
+    // pasangan tetap masuk daftar "perlu dicek", bukan dihitung menikah.
+    const anggotaMenikah =
+      kepala && pendamping.length > 0 ? [kepala, ...pendamping] : [];
+
+    if (anggotaMenikah.length === 0) {
+      perluDicek.push({ keluarga_id, kepala, anggota: list });
+      continue;
+    }
+
+    menikah.push(...anggotaMenikah);
+
+    if (anggotaMenikah.length === 2) {
+      // Kasus normal: satu kepala keluarga + satu suami/istri.
+      pasangan.push([anggotaMenikah[0], anggotaMenikah[1]]);
+      pasanganDari.set(anggotaMenikah[0].id, anggotaMenikah[1]);
+      pasanganDari.set(anggotaMenikah[1].id, anggotaMenikah[0]);
+    } else {
+      // Data tidak lazim (mis. lebih dari satu pasangan): pasangkan
+      // laki-laki dengan perempuan sebanyak mungkin.
+      const laki = anggotaMenikah.filter(
+        (w) => (w.jenis_kelamin || "").toUpperCase() === "L"
+      );
+      const perempuan = anggotaMenikah.filter(
+        (w) => (w.jenis_kelamin || "").toUpperCase() === "P"
+      );
+      const jumlah = Math.min(laki.length, perempuan.length);
+      for (let i = 0; i < jumlah; i++) {
+        pasangan.push([laki[i], perempuan[i]]);
+        pasanganDari.set(laki[i].id, perempuan[i]);
+        pasanganDari.set(perempuan[i].id, laki[i]);
+      }
+    }
+  }
+
+  return { menikah, pasanganDari, pasangan, perluDicek };
+}
+
 export const KATEGORI_USIA_LIST = [
   "0-4", "5-9", "10-14", "15-19", "20-24", "25-29", "30-34",
   "35-39", "40-44", "45-49", "50-54", "55-59", "60-64", "65+",

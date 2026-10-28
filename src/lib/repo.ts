@@ -9,6 +9,7 @@ import {
   PENDIDIKAN_LIST,
   isWUS,
   isPUS,
+  hitungPasangan,
 } from "./calc";
 
 type QB<T> = PromiseLike<{ data: T | null; error: { message: string } | null }>;
@@ -354,6 +355,7 @@ export async function getStats(db: SupabaseClient) {
   ]);
 
   const aktif = all.filter((x) => x.status_warga === "aktif");
+  const pasanganInfo = hitungPasangan(aktif);
 
   const byKelompok = (await listKelompok(db)).map((k) => {
     const w = aktif.filter((x) => x.kelompok_id === k.id);
@@ -388,6 +390,8 @@ export async function getStats(db: SupabaseClient) {
       pus: w.filter((x) => x.pus).length,
       wus: w.filter((x) => x.wus).length,
       ibuHamil: w.filter((x) => x.is_hamil).length,
+      menikah: pasanganInfo.menikah.filter((x) => x.kelompok_id === k.id).length,
+      pasangan: pasanganInfo.pasangan.filter(([a]) => a.kelompok_id === k.id).length,
     };
   });
 
@@ -418,6 +422,8 @@ export async function getStats(db: SupabaseClient) {
       pus: a.pus + k.pus,
       wus: a.wus + k.wus,
       ibu_hamil: a.ibu_hamil + k.ibuHamil,
+      menikah: a.menikah + k.menikah,
+      pasangan: a.pasangan + k.pasangan,
     }),
     {
       bangunan: 0, keluarga: 0, individu: 0, laki: 0, perempuan: 0,
@@ -426,6 +432,7 @@ export async function getStats(db: SupabaseClient) {
       pend0_3: 0, pend4_6: 0, pend7_12: 0, pend13_15: 0, pend16_18: 0, pend19_22: 0, pend23: 0,
       pus: 0, wus: 0,
       ibu_hamil: 0,
+      menikah: 0, pasangan: 0,
     }
   );
 
@@ -455,6 +462,7 @@ export async function getStats(db: SupabaseClient) {
   return {
     totals: {
       ...total,
+      kk_perlu_dicek: pasanganInfo.perluDicek.length,
       pindah: all.filter((x) => x.status_warga === "pindah").length,
       meninggal: all.filter((x) => x.status_warga === "meninggal").length,
     },
