@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AuthShell from "@/components/AuthShell";
@@ -11,7 +11,7 @@ import { invalidateApi } from "@/lib/clientApi";
 
 function pesanError(message: string): string {
   const m = message.toLowerCase();
-  if (m.includes("invalid login credentials")) return "Username atau password salah.";
+  if (m.includes("invalid login credentials")) return "Nomor ID Dawis atau password salah.";
   if (m.includes("email not confirmed"))
     return "Akun belum aktif. Hubungi pengelola untuk mengaktifkan.";
   if (m.includes("banned") || m.includes("user_banned"))
@@ -30,10 +30,34 @@ export default function LoginPage() {
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [banner, setBanner] = useState(false);
+  const passRef = useRef<HTMLInputElement>(null);
+
+  // Datang dari halaman daftar (`/login?daftar=berhasil&u=...`): isi Nomor ID
+  // Dawis otomatis, arahkan kursor ke kolom password, tampilkan banner sukses
+  // selama 5 detik, lalu bersihkan URL agar banner tidak muncul lagi saat
+  // halaman di-refresh. Query dibaca dari window supaya tidak butuh Suspense.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    if (q.get("daftar") !== "berhasil") return;
+
+    const uname = normalizeUsername(q.get("u") || "");
+    if (uname) setUsername(uname);
+    setBanner(true);
+    window.history.replaceState(null, "", "/login");
+
+    const sembunyi = window.setTimeout(() => setBanner(false), 5000);
+    const fokus = window.setTimeout(() => passRef.current?.focus(), 300);
+
+    return () => {
+      window.clearTimeout(sembunyi);
+      window.clearTimeout(fokus);
+    };
+  }, []);
 
   const submit = async () => {
     const uname = normalizeUsername(username);
-    if (!uname) return setError("Username wajib diisi.");
+    if (!uname) return setError("Nomor ID Dawis wajib diisi.");
     if (!password) return setError("Password wajib diisi.");
 
     setLoading(true);
@@ -59,7 +83,7 @@ export default function LoginPage() {
   return (
     <AuthShell
       title="Masuk"
-      subtitle="Gunakan username dan password akun Dawis Anda."
+      subtitle="Gunakan Nomor ID Dawis dan password akun Anda."
       footer={
         <p className="text-center text-xs text-slate-500">
           Belum punya akun?{" "}
@@ -69,6 +93,20 @@ export default function LoginPage() {
         </p>
       }
     >
+      {banner && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex items-start gap-2 rounded-xl bg-emerald-50 px-3 py-2.5 text-xs leading-relaxed text-emerald-800 ring-1 ring-emerald-200"
+        >
+          <Icon name="check" className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+          <span>
+            <span className="font-bold">Pendaftaran berhasil.</span> Silakan masuk dengan Nomor ID
+            Dawis dan password yang tadi Anda buat.
+          </span>
+        </div>
+      )}
+
       <form
         className="space-y-4"
         onSubmit={(e) => {
@@ -76,12 +114,12 @@ export default function LoginPage() {
           submit();
         }}
       >
-        <Field label="Username" required>
+        <Field label="Username / Nomor ID Dawis" required>
           <input
             className={inputCls}
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder="cth: A12345"
+            placeholder="cth: U11289"
             autoComplete="username"
             autoCapitalize="characters"
             spellCheck={false}
@@ -92,6 +130,7 @@ export default function LoginPage() {
         <Field label="Password" required>
           <div className="relative">
             <input
+              ref={passRef}
               className={`${inputCls} pr-11`}
               type={showPass ? "text" : "password"}
               value={password}

@@ -38,12 +38,19 @@ Menggantikan Google Sheet "Data Dawis Yusril" dengan database Supabase
 
 ## Akun & Login
 
-- **Username**: diawali huruf, 4–12 karakter huruf/angka. Contoh `A12345`.
+- **Username / Nomor ID Dawis**: diawali huruf, 4–12 karakter huruf/angka.
+  Contoh `U11289`. Dipakai juga sebagai nomor ID Dawis dan **tidak bisa diubah**
+  setelah daftar — kalau salah, akun harus dihapus lalu didaftarkan ulang oleh
+  admin.
 - **Password**: dipilih sendiri saat daftar, minimal 6 karakter. Bisa diubah di
   menu **Akun Saya**.
 - Pendaftaran akun baru dilakukan sendiri oleh masing-masing ibu Dawis lewat
-  halaman **/register**. Setelah daftar, akun baru langsung diarahkan ke halaman
-  Data Warga dan bisa memakai tombol **Mulai Isi Data Warga** (panduan
+  halaman **/register**. Setelah daftar, sesi otomatis ditutup dan muncul layar
+  **Pendaftaran berhasil** (berisi Nomor ID Dawis + pengingat password) selama
+  5 detik, lalu pindah ke **/login**. Tombol **Masuk di sini** bisa ditekan lebih
+  awal. Di halaman login, Nomor ID Dawis sudah terisi otomatis, kursor langsung
+  di kolom password, dan banner hijau "Pendaftaran berhasil" tampil 5 detik.
+  Setelah masuk, akun baru bisa memakai tombol **Mulai Isi Data Warga** (panduan
   kelompok → bangunan → keluarga). Datanya terpisah dari akun lain sejak awal.
 - **Admin**: akun dengan `profiles.is_admin = true` mendapat menu **Kelola Akun**
   (`/admin`) untuk mengurus akun ibu Dawis lain. Admin **tidak** bisa melihat
