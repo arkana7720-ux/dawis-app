@@ -95,30 +95,17 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
-  const isStruktur = pathname === "/struktur";
-
   const avatarText = inisial(me?.user.nama ?? "", me?.user.username ?? "");
 
   return (
     <div className="relative min-h-screen">
       <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-        {isStruktur ? (
-          <>
-            <div className="absolute inset-0 bg-gradient-to-br from-[#fffdf6] via-[#f6fbf7] to-[#eef8f2]" />
-            <div className="absolute -left-32 -top-24 h-[420px] w-[420px] rounded-full bg-emerald-100/50 blur-3xl" />
-            <div className="absolute -right-24 bottom-0 h-[380px] w-[380px] rounded-full bg-teal-100/40 blur-3xl" />
-            <Botanical className="absolute -right-10 top-10 h-[360px] w-[300px] rotate-[8deg] text-emerald-900 opacity-[0.06] md:right-10" />
-            <Botanical className="absolute -left-16 bottom-8 h-[320px] w-[260px] -rotate-[14deg] text-teal-900 opacity-[0.05] md:left-[280px]" />
-          </>
-        ) : (
-          <>
-            <div className="absolute -left-40 -top-32 h-[460px] w-[460px] rounded-full bg-emerald-200/30 blur-3xl" />
-            <div className="absolute -right-32 top-1/4 h-[420px] w-[420px] rounded-full bg-sky-200/25 blur-3xl" />
-            <div className="absolute -bottom-40 left-1/3 h-[460px] w-[460px] rounded-full bg-rose-200/20 blur-3xl" />
-            <Botanical className="absolute -right-12 top-20 h-[380px] w-[300px] rotate-[8deg] text-emerald-800 opacity-[0.07] md:right-16 md:top-24" />
-            <Botanical className="absolute -left-20 bottom-10 h-[340px] w-[280px] -rotate-[12deg] text-teal-800 opacity-[0.055] md:left-[300px]" />
-          </>
-        )}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#fffdf6] via-[#f6fbf7] to-[#eef8f2]" />
+        <div className="absolute -left-32 -top-24 h-[420px] w-[420px] rounded-full bg-emerald-100/50 blur-3xl" />
+        <div className="absolute -right-24 bottom-0 h-[380px] w-[380px] rounded-full bg-teal-100/40 blur-3xl" />
+        <div className="absolute left-1/3 top-1/2 h-[360px] w-[360px] rounded-full bg-amber-100/30 blur-3xl" />
+        <Botanical className="absolute -right-10 top-10 h-[360px] w-[300px] rotate-[8deg] text-emerald-900 opacity-[0.06] md:right-10" />
+        <Botanical className="absolute -left-16 bottom-8 h-[320px] w-[260px] -rotate-[14deg] text-teal-900 opacity-[0.05] md:left-[280px]" />
       </div>
 
       <aside className="no-print fixed inset-y-0 left-0 z-30 hidden w-[260px] flex-col overflow-hidden border-r border-white/10 bg-gradient-to-b from-[#0F172A] via-[#101B2D] to-[#0B1120] md:flex">

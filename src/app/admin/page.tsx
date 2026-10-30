@@ -15,6 +15,7 @@ import {
   Modal,
   PageHeader,
   Skeleton,
+  StatCard,
   inputCls,
 } from "@/components/ui";
 
@@ -177,7 +178,7 @@ function KelolaModal({
 
   return (
     <Modal open onClose={onClose} title={`Kelola ${akun.nama || akun.username}`} wide>
-      <div className="rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-slate-100">
+      <div className="rounded-xl bg-white/70 px-4 py-3 ring-1 ring-white/70">
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-mono text-sm font-bold uppercase tracking-wider text-emerald-700">
             {akun.username}
@@ -207,8 +208,8 @@ function KelolaModal({
       )}
 
       {/* Nama */}
-      <div className="space-y-2 rounded-xl border border-slate-100 p-3">
-        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+      <div className="space-y-2 rounded-xl border border-white/70 bg-white/40 p-3">
+        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
           Nama tampil
         </p>
         <div className="flex flex-wrap gap-2">
@@ -222,14 +223,14 @@ function KelolaModal({
             {sibuk === "nama" ? "Menyimpan..." : "Simpan"}
           </Btn>
         </div>
-        <p className="text-[11px] text-slate-400">
+        <p className="text-[11px] text-slate-500">
           Nama ini yang tampil di sidebar akun tersebut, bukan username.
         </p>
       </div>
 
       {/* Password */}
-      <div className="space-y-2 rounded-xl border border-slate-100 p-3">
-        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+      <div className="space-y-2 rounded-xl border border-white/70 bg-white/40 p-3">
+        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
           Reset password
         </p>
         <div className="flex flex-wrap gap-2">
@@ -264,16 +265,16 @@ function KelolaModal({
             </Btn>
           </div>
         )}
-        <p className="text-[11px] text-slate-400">
+        <p className="text-[11px] text-slate-500">
           Berikan password ini ke ibu tersebut, lalu minta ia menggantinya di menu Akun Saya.
         </p>
       </div>
 
       {/* Status */}
       {!diriSendiri && (
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-100 p-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/70 bg-white/40 p-3">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
               Status akun
             </p>
             <p className="mt-0.5 text-xs text-slate-500">
@@ -295,8 +296,8 @@ function KelolaModal({
 
       {/* Pindah data */}
       {!diriSendiri && punyaData && tujuan.length > 0 && (
-        <div className="space-y-2 rounded-xl border border-slate-100 p-3">
-          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+        <div className="space-y-2 rounded-xl border border-white/70 bg-white/40 p-3">
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
             Pindahkan data ke akun lain
           </p>
           <p className="text-[11px] leading-relaxed text-slate-500">
@@ -443,18 +444,18 @@ export default function AdminPage() {
       <>
         <PageHeader title="Kelola Akun" subtitle="Panel pengelola Dawis" />
         <Card className="p-8 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 text-amber-500 ring-1 ring-amber-100">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white/70 text-amber-500 ring-1 ring-amber-200/60 backdrop-blur-md">
             <Icon name="key" className="h-7 w-7" />
           </div>
           <p className="mt-4 text-sm font-semibold text-slate-700">
             Halaman ini hanya untuk pengelola akun
           </p>
-          <p className="mx-auto mt-1 max-w-md text-xs leading-relaxed text-slate-400">
+          <p className="mx-auto mt-1 max-w-md text-xs leading-relaxed text-slate-500">
             Akun Anda bukan admin. Hubungi pengelola Dawis jika perlu mengubah atau menghapus akun.
           </p>
           <div className="mt-4 flex justify-center">
             <Link href="/">
-              <span className="inline-flex items-center gap-1.5 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 ring-1 ring-slate-200">
+              <span className="inline-flex items-center gap-1.5 rounded-xl bg-white/70 px-4 py-2.5 text-sm font-semibold text-slate-700 ring-1 ring-white/80 backdrop-blur-md">
                 Kembali ke Dashboard
               </span>
             </Link>
@@ -479,33 +480,40 @@ export default function AdminPage() {
         }
       />
 
-      <div className="mb-4 flex items-start gap-2.5 rounded-2xl bg-emerald-50 px-4 py-3 ring-1 ring-emerald-100">
+      <div className="mb-4 flex items-start gap-2.5 rounded-2xl border border-white/70 bg-white/60 px-4 py-3 shadow-sm shadow-slate-900/5 ring-1 ring-emerald-100/60 backdrop-blur-md">
         <Icon name="key" className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
-        <p className="text-xs leading-relaxed text-emerald-800">
+        <p className="text-xs leading-relaxed text-emerald-900/80">
           Panel ini hanya mengelola <b>akun</b>. Data warga tiap kelompok tetap tidak dapat dibuka
           dari sini — hanya pemiliknya yang bisa melihat dan mengubahnya.
         </p>
       </div>
 
-      <div className="mb-4 grid grid-cols-3 gap-2.5 sm:gap-3">
-        {[
-          { label: "Akun", nilai: akun ? akun.length : null, sub: "terdaftar" },
-          { label: "Nonaktif", nilai: akun ? nonaktif : null, sub: "tidak bisa login" },
-          { label: "Warga", nilai: akun ? totalWarga : null, sub: "seluruh akun" },
-        ].map((s) => (
-          <div
-            key={s.label}
-            className="rounded-2xl bg-white px-3 py-3 ring-1 ring-slate-200/70"
-          >
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
-              {s.label}
-            </p>
-            <p className="mt-1 text-xl font-extrabold tracking-tight text-slate-800">
-              {s.nilai === null ? "–" : s.nilai}
-            </p>
-            <p className="text-[10px] text-slate-400">{s.sub}</p>
-          </div>
-        ))}
+      <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <StatCard
+          label="Akun"
+          value={akun ? akun.length : "–"}
+          sub="terdaftar"
+          icon="users"
+          tint="from-emerald-100/80 via-white/40 to-teal-100/60"
+          accent="from-emerald-500 to-teal-600"
+        />
+        <StatCard
+          label="Nonaktif"
+          value={akun ? nonaktif : "–"}
+          sub="tidak bisa login"
+          icon="alert"
+          tint="from-amber-100/80 via-white/40 to-orange-100/60"
+          accent="from-amber-400 to-orange-500"
+        />
+        <StatCard
+          className="col-span-2 sm:col-span-1"
+          label="Warga"
+          value={akun ? totalWarga : "–"}
+          sub="seluruh akun"
+          icon="family"
+          tint="from-violet-100/80 via-white/40 to-purple-100/60"
+          accent="from-violet-500 to-purple-600"
+        />
       </div>
 
       <Card>
@@ -516,7 +524,7 @@ export default function AdminPage() {
             <div className="relative">
               <Icon
                 name="search"
-                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
               />
               <input
                 className={`${inputCls} w-56 pl-9`}
@@ -537,9 +545,9 @@ export default function AdminPage() {
         ) : daftar.length === 0 ? (
           <EmptyState message={cari ? "Tidak ada akun yang cocok." : "Belum ada akun."} />
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-white/60">
             {daftar.map((a) => (
-              <li key={a.id} className="flex flex-wrap items-center gap-3 px-4 py-3 sm:px-5">
+              <li key={a.id} className="flex flex-wrap items-center gap-3 px-4 py-3 transition-colors hover:bg-emerald-50/50 sm:px-5">
                 <Avatar name={a.nama || a.username} />
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-1.5">
@@ -550,9 +558,9 @@ export default function AdminPage() {
                     {a.is_admin && <Badge color="violet">Admin</Badge>}
                     {!a.aktif && <Badge color="red">Nonaktif</Badge>}
                   </div>
-                  <p className="font-mono text-[11px] uppercase tracking-wider text-slate-400">
+                  <p className="font-mono text-[11px] uppercase tracking-wider text-slate-500">
                     {a.username}
-                    <span className="ml-2 font-sans normal-case tracking-normal text-slate-400">
+                    <span className="ml-2 font-sans normal-case tracking-normal text-slate-500">
                       · {a.jumlah_kelompok} kelompok · {a.jumlah_warga} jiwa
                     </span>
                   </p>
@@ -566,7 +574,7 @@ export default function AdminPage() {
         )}
       </Card>
 
-      <p className="mt-4 px-1 text-[11px] leading-relaxed text-slate-400">
+      <p className="mt-4 px-1 text-[11px] leading-relaxed text-slate-500">
         Menghapus akun akan menghapus seluruh data miliknya (kelompok, bangunan, keluarga, warga).
         Untuk akun yang sudah punya data, pindahkan dulu datanya ke akun lain lewat tombol Kelola.
       </p>

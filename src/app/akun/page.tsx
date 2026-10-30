@@ -6,6 +6,7 @@ import Link from "next/link";
 import { getBrowserSupabase } from "@/lib/supabase";
 import { invalidateApi } from "@/lib/clientApi";
 import {
+  Avatar,
   Btn,
   Card,
   CardHeader,
@@ -101,28 +102,31 @@ export default function AkunPage() {
               </>
             ) : (
               <>
-                <div className="rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-slate-100">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
-                    Nama
-                  </p>
-                  <p className="mt-0.5 text-sm font-bold text-slate-800">
-                    {me.user.nama || "—"}
-                  </p>
+                <div className="flex items-center gap-3 rounded-xl bg-gradient-to-r from-emerald-50/90 via-teal-50/60 to-white/70 px-4 py-3 ring-1 ring-white/70">
+                  <Avatar name={me.user.nama || me.user.username} />
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
+                      Nama
+                    </p>
+                    <p className="mt-0.5 truncate text-sm font-bold text-slate-900">
+                      {me.user.nama || "—"}
+                    </p>
+                  </div>
                 </div>
-                <div className="rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-slate-100">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+                <div className="rounded-xl bg-white/70 px-4 py-3 ring-1 ring-white/70">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
                     Username
                   </p>
                   <p className="mt-0.5 font-mono text-sm font-bold uppercase tracking-wider text-emerald-700">
                     {me.user.username || "—"}
                   </p>
                 </div>
-                <div className="rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-slate-100">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+                <div className="rounded-xl bg-white/70 px-4 py-3 ring-1 ring-white/70">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
                     Kelompok yang Anda kelola
                   </p>
                   {me.kelompok.length === 0 ? (
-                    <p className="mt-0.5 text-sm text-slate-400">
+                    <p className="mt-0.5 text-sm text-slate-500">
                       Belum ada. Tambahkan di menu Struktur Wilayah.
                     </p>
                   ) : (
@@ -131,7 +135,7 @@ export default function AkunPage() {
                         <li key={k.id} className="text-sm font-semibold text-slate-700">
                           {k.nama}
                           {k.kode && (
-                            <span className="ml-2 text-xs font-medium text-slate-400">
+                            <span className="ml-2 text-xs font-medium text-slate-500">
                               {k.kode}
                             </span>
                           )}
@@ -202,7 +206,7 @@ export default function AkunPage() {
             </p>
             <Link
               href="/admin"
-              className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-emerald-600/25 transition-all hover:bg-emerald-500 active:scale-[0.98]"
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-emerald-700/25 transition-all hover:bg-emerald-800 active:scale-[0.98]"
             >
               <Icon name="key" className="h-4 w-4" />
               Buka Panel Admin

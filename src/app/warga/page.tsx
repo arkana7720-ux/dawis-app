@@ -112,8 +112,8 @@ function GenderAvatar({ w, size = "md" }: { w: WargaRow; size?: "md" | "lg" }) {
 
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex items-start justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2">
-      <span className="shrink-0 text-xs font-semibold text-slate-400">{label}</span>
+    <div className="flex items-start justify-between gap-3 rounded-xl bg-white/70 px-3 py-2 ring-1 ring-white/70">
+      <span className="shrink-0 text-xs font-semibold text-slate-500">{label}</span>
       <span className="text-right text-sm font-medium text-slate-700">{value}</span>
     </div>
   );
@@ -500,36 +500,48 @@ export default function WargaPage() {
       />
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="inline-flex rounded-xl bg-slate-100 p-1">
+        <div className="inline-flex gap-1 rounded-2xl border border-white/70 bg-white/50 p-1.5 shadow-sm shadow-slate-900/5 backdrop-blur-md">
           <button
             onClick={() => setFStatus("aktif")}
-            className={`inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-bold transition-all sm:text-sm ${
+            className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all sm:text-sm ${
               fStatus === "aktif"
-                ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-200"
-                : "text-slate-500 hover:text-slate-700"
+                ? "bg-white text-emerald-700 shadow-sm ring-1 ring-emerald-200/80"
+                : "text-slate-600 hover:bg-white/70 hover:text-slate-900"
             }`}
           >
             Warga Aktif
-            <span className="rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-extrabold tabular-nums text-emerald-700">
+            <span
+              className={`rounded-md px-1.5 py-0.5 text-[10px] font-extrabold tabular-nums ${
+                fStatus === "aktif"
+                  ? "bg-emerald-100 text-emerald-700"
+                  : "bg-white/70 text-slate-500 ring-1 ring-slate-200/60"
+              }`}
+            >
               {counts.aktif}
             </span>
           </button>
           <button
             onClick={() => setFStatus("arsip")}
-            className={`inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-bold transition-all sm:text-sm ${
+            className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all sm:text-sm ${
               fStatus === "arsip"
-                ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-200"
-                : "text-slate-500 hover:text-slate-700"
+                ? "bg-white text-emerald-700 shadow-sm ring-1 ring-emerald-200/80"
+                : "text-slate-600 hover:bg-white/70 hover:text-slate-900"
             }`}
           >
             Arsip
-            <span className="rounded-md bg-slate-200 px-1.5 py-0.5 text-[10px] font-extrabold tabular-nums text-slate-600">
+            <span
+              className={`rounded-md px-1.5 py-0.5 text-[10px] font-extrabold tabular-nums ${
+                fStatus === "arsip"
+                  ? "bg-emerald-100 text-emerald-700"
+                  : "bg-white/70 text-slate-500 ring-1 ring-slate-200/60"
+              }`}
+            >
               {counts.arsip}
             </span>
           </button>
         </div>
         {fStatus === "arsip" && (
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500">
             Berisi warga pindah / meninggal — tidak dihitung di dashboard.
           </p>
         )}
@@ -547,17 +559,17 @@ export default function WargaPage() {
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
               />
-              <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 items-center gap-0.5 rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 ring-1 ring-slate-200 sm:flex">
+              <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 items-center gap-0.5 rounded-md bg-white/70 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500 ring-1 ring-white/80 sm:flex">
                 Ctrl K
               </kbd>
             </div>
             <div className="hidden items-center gap-2 md:flex">
               <button
                 onClick={() => setAdvOpen(!advOpen)}
-                className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold ring-1 transition-all ${
+                className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold ring-1 backdrop-blur-md transition-all ${
                   advOpen || hasFilter
-                    ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
-                    : "bg-white text-slate-500 ring-slate-200"
+                    ? "bg-emerald-50/90 text-emerald-700 ring-emerald-200"
+                    : "bg-white/70 text-slate-600 ring-slate-200/80 hover:bg-white/90 hover:text-slate-900"
                 }`}
               >
                 <Icon name="filter" className="h-3.5 w-3.5" />
@@ -632,8 +644,8 @@ export default function WargaPage() {
                   }}
                   className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all ${
                     active
-                      ? "bg-slate-900 text-white shadow-sm"
-                      : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                      ? "bg-emerald-700 text-white shadow-sm shadow-emerald-700/25"
+                      : "bg-white/70 text-slate-600 ring-1 ring-white/70 hover:bg-white"
                   }`}
                 >
                   {c.label}
@@ -643,10 +655,10 @@ export default function WargaPage() {
           </div>
           <button
             onClick={() => setAdvOpen(!advOpen)}
-            className={`mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold ring-1 transition-all ${
+            className={`mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold ring-1 backdrop-blur-md transition-all ${
               advOpen
-                ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
-                : "bg-white text-slate-500 ring-slate-200"
+                ? "bg-emerald-50/90 text-emerald-700 ring-emerald-200"
+                : "bg-white/70 text-slate-600 ring-slate-200/80 hover:bg-white/90"
             }`}
           >
             <Icon name="filter" className="h-3.5 w-3.5" />
@@ -753,7 +765,7 @@ export default function WargaPage() {
             <div className="max-h-[calc(100vh-330px)] min-h-[240px] overflow-auto">
               <table className="w-full text-sm">
                 <thead className="sticky top-0 z-10">
-                  <tr className="border-b border-slate-200/80 bg-slate-50/95 backdrop-blur">
+                  <tr className="border-b border-white/70 bg-white/80 backdrop-blur-md">
                     <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Warga</th>
                     <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Alamat</th>
                     <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Hubungan</th>
@@ -766,15 +778,15 @@ export default function WargaPage() {
                     <th className="px-4 py-3"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-white/60">
                   {filtered.map((w) => (
-                    <tr key={w.id} className="group transition-colors hover:bg-slate-50/80">
+                    <tr key={w.id} className="group transition-colors hover:bg-emerald-50/60">
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
                           <GenderAvatar w={w} />
                           <div className="min-w-0">
                             <p className="truncate font-bold text-slate-800">{w.nama}</p>
-                            <p className="text-xs text-slate-400">
+                            <p className="text-xs text-slate-500">
                               {w.jenis_kelamin === "L" ? "Laki-laki" : w.jenis_kelamin === "P" ? "Perempuan" : "-"} ·{" "}
                               {formatTanggal(w.tanggal_lahir)}
                             </p>
@@ -783,7 +795,7 @@ export default function WargaPage() {
                       </td>
                       <td className="px-3 py-3 text-slate-600">
                         <p className="truncate">{w.bangunan_nama}</p>
-                        <p className="truncate text-[11px] text-slate-400">{w.kelompok_nama}</p>
+                        <p className="truncate text-[11px] text-slate-500">{w.kelompok_nama}</p>
                       </td>
                       <td className="px-3 py-3">
                         {w.hubungan ? (
@@ -859,7 +871,7 @@ export default function WargaPage() {
 
           <div className="grid grid-cols-1 gap-3 md:hidden">
             {filtered.map((w) => (
-              <Card key={w.id} className="p-4">
+              <Card key={w.id} className="p-4 transition-colors hover:bg-white/75">
                 <div className="relative flex items-start gap-3">
                   <GenderAvatar w={w} />
                   <div className="min-w-0 flex-1">
@@ -879,11 +891,11 @@ export default function WargaPage() {
                     {menuFor === w.id && (
                       <>
                         <div className="fixed inset-0 z-10" onClick={() => setMenuFor(null)} />
-                        <div className="absolute right-0 top-9 z-20 w-40 overflow-hidden rounded-xl bg-white py-1 shadow-xl ring-1 ring-slate-200">
-                          <button className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-medium text-slate-600 hover:bg-slate-50" onClick={() => { setDetailRow(w); setMenuFor(null); }}>
+                        <div className="absolute right-0 top-9 z-20 w-40 overflow-hidden rounded-xl border border-white/70 bg-white/95 py-1 shadow-xl shadow-slate-900/10 backdrop-blur-md">
+                          <button className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-medium text-slate-600 hover:bg-emerald-50/70" onClick={() => { setDetailRow(w); setMenuFor(null); }}>
                             <Icon name="eye" className="h-3.5 w-3.5" /> Detail
                           </button>
-                          <button className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-medium text-slate-600 hover:bg-slate-50" onClick={() => { openEdit(w); setMenuFor(null); }}>
+                          <button className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-medium text-slate-600 hover:bg-emerald-50/70" onClick={() => { openEdit(w); setMenuFor(null); }}>
                             <Icon name="edit" className="h-3.5 w-3.5" /> Edit Data
                           </button>
                           <button className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-medium text-emerald-700 hover:bg-emerald-50" onClick={() => openStatus(w)}>
@@ -900,11 +912,11 @@ export default function WargaPage() {
 
                 <div className="mt-3 space-y-1.5 text-xs text-slate-500">
                   <p className="flex items-center gap-1.5">
-                    <Icon name="building" className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                    <Icon name="building" className="h-3.5 w-3.5 shrink-0 text-slate-500" />
                     {w.bangunan_nama} — {w.kelompok_nama}
                   </p>
                   <p className="flex items-center gap-1.5">
-                    <Icon name="calendar" className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                    <Icon name="calendar" className="h-3.5 w-3.5 shrink-0 text-slate-500" />
                     {w.usia ?? "?"} tahun · {formatTanggal(w.tanggal_lahir)}
                   </p>
                 </div>
@@ -927,14 +939,14 @@ export default function WargaPage() {
                 </div>
 
                 {fStatus === "arsip" && (
-                  <div className="mt-3 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-500">
+                  <div className="mt-3 rounded-xl bg-white/60 px-3 py-2 text-xs text-slate-600 ring-1 ring-white/70">
                     {w.status_warga === "pindah" ? "Pindah" : "Meninggal"}
                     {w.tgl_status_berubah ? ` · ${formatTanggal(w.tgl_status_berubah)}` : ""}
                     {w.catatan_status ? ` · ${w.catatan_status}` : ""}
                   </div>
                 )}
 
-                <div className="mt-3 grid grid-cols-2 gap-2 border-t border-slate-100 pt-3">
+                <div className="mt-3 grid grid-cols-2 gap-2 border-t border-white/70 pt-3">
                   <Btn size="sm" variant="secondary" onClick={() => setDetailRow(w)}>
                     <Icon name="eye" className="h-3.5 w-3.5" />
                     Detail Warga
@@ -1072,11 +1084,11 @@ export default function WargaPage() {
       >
         {statusModal.w && (
           <>
-            <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-3">
+            <div className="flex items-center gap-3 rounded-xl bg-white/70 p-3 ring-1 ring-white/70">
               <GenderAvatar w={statusModal.w} />
               <div className="min-w-0">
                 <p className="truncate text-sm font-bold text-slate-800">{statusModal.w.nama}</p>
-                <p className="truncate text-xs text-slate-400">
+                <p className="truncate text-xs text-slate-500">
                   {statusModal.w.hubungan || "-"} · {statusModal.w.bangunan_nama}
                 </p>
               </div>

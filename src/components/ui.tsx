@@ -113,6 +113,53 @@ export function Card({
   );
 }
 
+/** Kartu angka ringkasan bergaya glassmorphism dengan aksen pastel. */
+export function StatCard({
+  label,
+  value,
+  icon,
+  tint,
+  accent,
+  sub,
+  className = "",
+}: {
+  label: string;
+  value: ReactNode;
+  icon: string;
+  tint: string;
+  accent: string;
+  sub?: string;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`group relative flex min-h-[96px] flex-col justify-center overflow-hidden rounded-2xl border border-white/70 bg-white/60 p-4 shadow-[0_16px_40px_-28px_rgba(15,23,42,0.45)] ring-1 ring-slate-900/[0.04] backdrop-blur-md transition-colors duration-300 hover:bg-white/80 sm:min-h-[104px] sm:p-5 ${className}`}
+    >
+      <span className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${tint}`} />
+      <Icon
+        name="leaf"
+        className="pointer-events-none absolute -bottom-3 -right-3 h-16 w-16 text-emerald-900 opacity-[0.05] transition-transform duration-500 group-hover:rotate-6 group-hover:scale-110"
+      />
+      <div className="relative flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-600">
+            {label}
+          </p>
+          <p className="mt-1.5 text-[24px] font-extrabold leading-none tracking-tight tabular-nums text-slate-900 sm:text-[28px]">
+            {value}
+          </p>
+          {sub && <p className="mt-1 truncate text-[10px] font-medium text-slate-500">{sub}</p>}
+        </div>
+        <span
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${accent} text-white shadow-lg shadow-slate-900/15 ring-1 ring-inset ring-white/30 transition-transform duration-300 group-hover:scale-110 sm:h-10 sm:w-10`}
+        >
+          <Icon name={icon} className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export function CardHeader({
   title,
   desc,
@@ -389,11 +436,11 @@ export function Modal({
           role="dialog"
           aria-modal="true"
           aria-label={title}
-          className={`animate-scale-in flex max-h-[85vh] w-full flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ${
+          className={`animate-scale-in flex max-h-[85vh] w-full flex-col overflow-hidden rounded-2xl border border-white/70 bg-white/95 shadow-2xl shadow-slate-900/20 backdrop-blur-xl ${
             wide ? "sm:max-w-2xl" : "sm:max-w-lg"
           }`}
         >
-          <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-100 p-4 sm:p-5">
+          <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/70 bg-white/60 p-4 sm:p-5">
             <h2 className="truncate text-base font-bold text-slate-900">{title}</h2>
             <IconBtn icon="x" onClick={onClose} title="Tutup" />
           </div>
@@ -426,7 +473,7 @@ export function EmptyState({
 }) {
   return (
     <div className="py-14 text-center">
-      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-300">
+      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white/70 text-emerald-500 ring-1 ring-emerald-200/60 backdrop-blur-md">
         <Icon name="inbox" className="h-7 w-7" />
       </div>
       <p className="mt-4 text-sm font-medium text-slate-400">{message}</p>

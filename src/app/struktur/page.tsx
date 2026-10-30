@@ -14,6 +14,7 @@ import {
   PageHeader,
   Skeleton,
   Spinner,
+  StatCard,
 } from "@/components/ui";
 import { isKepalaKeluarga, validasiWarga } from "@/lib/calc";
 import { WargaFields, emptyWargaValues } from "@/components/WargaFields";
@@ -121,46 +122,6 @@ function MenuItem({
       <Icon name={ikon} className="h-3.5 w-3.5" />
       {label}
     </button>
-  );
-}
-
-/** Kartu ringkasan kecil bergaya glassmorphism dengan aksen pastel. */
-function RingkasanCard({
-  label,
-  nilai,
-  icon,
-  tint,
-  accent,
-}: {
-  label: string;
-  nilai: number;
-  icon: string;
-  tint: string;
-  accent: string;
-}) {
-  return (
-    <div className="group relative flex min-h-[96px] flex-col justify-center overflow-hidden rounded-2xl border border-white/70 bg-white/60 p-4 shadow-[0_16px_40px_-28px_rgba(15,23,42,0.45)] ring-1 ring-slate-900/[0.04] backdrop-blur-md transition-colors duration-300 hover:bg-white/80 sm:min-h-[104px] sm:p-5">
-      <span className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${tint}`} />
-      <Icon
-        name="leaf"
-        className="pointer-events-none absolute -bottom-3 -right-3 h-16 w-16 text-emerald-900 opacity-[0.05] transition-transform duration-500 group-hover:rotate-6 group-hover:scale-110"
-      />
-      <div className="relative flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-600">
-            {label}
-          </p>
-          <p className="mt-1.5 text-[24px] font-extrabold leading-none tracking-tight tabular-nums text-slate-900 sm:text-[28px]">
-            {nilai}
-          </p>
-        </div>
-        <span
-          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${accent} text-white shadow-lg shadow-slate-900/15 ring-1 ring-inset ring-white/30 transition-transform duration-300 group-hover:scale-110 sm:h-10 sm:w-10`}
-        >
-          <Icon name={icon} className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
-        </span>
-      </div>
-    </div>
   );
 }
 
@@ -499,30 +460,30 @@ export default function StrukturPage() {
       {data.length > 0 && (
         <>
           <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
-            <RingkasanCard
+            <StatCard
               label="Kelompok"
-              nilai={ringkasan.kelompok}
+              value={ringkasan.kelompok}
               icon="family"
               tint="from-emerald-100/80 via-white/40 to-teal-100/60"
               accent="from-emerald-500 to-teal-600"
             />
-            <RingkasanCard
+            <StatCard
               label="Bangunan"
-              nilai={ringkasan.bangunan}
+              value={ringkasan.bangunan}
               icon="building"
               tint="from-sky-100/80 via-white/40 to-blue-100/60"
               accent="from-sky-500 to-blue-600"
             />
-            <RingkasanCard
+            <StatCard
               label="Keluarga"
-              nilai={ringkasan.keluarga}
+              value={ringkasan.keluarga}
               icon="key"
               tint="from-amber-100/80 via-white/40 to-orange-100/60"
               accent="from-amber-400 to-orange-500"
             />
-            <RingkasanCard
+            <StatCard
               label="Jiwa"
-              nilai={ringkasan.jiwa}
+              value={ringkasan.jiwa}
               icon="users"
               tint="from-violet-100/80 via-white/40 to-purple-100/60"
               accent="from-violet-500 to-purple-600"

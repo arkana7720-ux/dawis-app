@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Btn, Card, ErrorState, Icon, PageHeader, Skeleton } from "@/components/ui";
+import { Btn, Card, ErrorState, Icon, PageHeader, Skeleton, StatCard } from "@/components/ui";
 import { KATEGORI_USIA_LIST } from "@/lib/calc";
 import { fetchApi } from "@/lib/clientApi";
 
@@ -90,9 +90,40 @@ export default function LaporanPage() {
             </>
           }
         />
+
+        <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+          <StatCard
+            label="Bangunan"
+            value={t.bangunan}
+            icon="building"
+            tint="from-sky-100/80 via-white/40 to-blue-100/60"
+            accent="from-sky-500 to-blue-600"
+          />
+          <StatCard
+            label="Keluarga"
+            value={t.keluarga}
+            icon="key"
+            tint="from-amber-100/80 via-white/40 to-orange-100/60"
+            accent="from-amber-400 to-orange-500"
+          />
+          <StatCard
+            label="Jiwa"
+            value={t.individu}
+            icon="users"
+            tint="from-violet-100/80 via-white/40 to-purple-100/60"
+            accent="from-violet-500 to-purple-600"
+          />
+          <StatCard
+            label="WUS"
+            value={t.wus}
+            icon="heart"
+            tint="from-rose-100/80 via-white/40 to-pink-100/60"
+            accent="from-rose-400 to-pink-500"
+          />
+        </div>
       </div>
 
-      <Card className="print-area p-6 sm:p-10">
+      <Card className="print-area bg-white/85 p-6 sm:p-10">
         <div className="mb-6 flex items-center gap-4 border-b-4 border-double border-slate-800 pb-5">
           <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-700 text-white shadow-md">
             <Icon name="building" className="h-8 w-8" />
@@ -118,7 +149,7 @@ export default function LaporanPage() {
         <div className="overflow-x-auto">
         <table className="w-full border-collapse text-sm">
           <thead>
-            <tr className="bg-slate-100 text-left text-[11px] uppercase tracking-wider text-slate-600">
+            <tr className="bg-emerald-50/80 text-left text-[11px] uppercase tracking-wider text-emerald-900/70">
               <th className="border border-slate-300 px-3 py-2.5 font-bold">Kategori</th>
               {stats.byKelompok.map((k) => (
                 <th key={String(k.id)} className="border border-slate-300 px-3 py-2.5 text-center font-bold">
@@ -135,7 +166,7 @@ export default function LaporanPage() {
                 className={
                   row.label === "Individu"
                     ? "bg-emerald-50/70 font-bold text-slate-900"
-                    : "odd:bg-white even:bg-slate-50/50"
+                    : "odd:bg-white even:bg-emerald-50/25"
                 }
               >
                 <td className="border border-slate-300 px-3 py-1.5 text-slate-700">{row.label}</td>
@@ -151,13 +182,13 @@ export default function LaporanPage() {
         </table>
         </div>
 
-        <h2 className="mb-3 mt-8 text-sm font-extrabold uppercase tracking-wide text-slate-800">
+        <h2 className="mb-3 mt-8 border-l-4 border-emerald-500 pl-2.5 text-sm font-extrabold uppercase tracking-wide text-slate-800">
           Distribusi Usia per Jenis Kelamin
         </h2>
         <div className="overflow-x-auto">
         <table className="w-full border-collapse text-sm">
           <thead>
-            <tr className="bg-slate-100 text-[11px] uppercase tracking-wider text-slate-600">
+            <tr className="bg-emerald-50/80 text-[11px] uppercase tracking-wider text-emerald-900/70">
               <th className="border border-slate-300 px-3 py-2.5 text-left font-bold">Kategori Usia</th>
               <th className="border border-slate-300 px-3 py-2.5 text-center font-bold">Laki-laki</th>
               <th className="border border-slate-300 px-3 py-2.5 text-center font-bold">Perempuan</th>
@@ -168,7 +199,7 @@ export default function LaporanPage() {
             {KATEGORI_USIA_LIST.map((label) => {
               const d = stats.distribusiUsia.find((x) => x.label === label)!;
               return (
-                <tr key={label} className="odd:bg-white even:bg-slate-50/50">
+                <tr key={label} className="odd:bg-white even:bg-emerald-50/25">
                   <td className="border border-slate-300 px-3 py-1.5 text-slate-700">{label}</td>
                   <td className="border border-slate-300 px-3 py-1.5 text-center tabular-nums">{d.L}</td>
                   <td className="border border-slate-300 px-3 py-1.5 text-center tabular-nums">{d.P}</td>
@@ -188,13 +219,13 @@ export default function LaporanPage() {
         </table>
         </div>
 
-        <h2 className="mb-3 mt-8 text-sm font-extrabold uppercase tracking-wide text-slate-800">
+        <h2 className="mb-3 mt-8 border-l-4 border-emerald-500 pl-2.5 text-sm font-extrabold uppercase tracking-wide text-slate-800">
           Distribusi Kategori Usia Baru per Jenis Kelamin
         </h2>
         <div className="overflow-x-auto">
         <table className="w-full border-collapse text-sm">
           <thead>
-            <tr className="bg-slate-100 text-[11px] uppercase tracking-wider text-slate-600">
+            <tr className="bg-emerald-50/80 text-[11px] uppercase tracking-wider text-emerald-900/70">
               <th className="border border-slate-300 px-3 py-2.5 text-left font-bold">Kategori Usia Baru</th>
               <th className="border border-slate-300 px-3 py-2.5 text-center font-bold">Laki-laki</th>
               <th className="border border-slate-300 px-3 py-2.5 text-center font-bold">Perempuan</th>
@@ -203,7 +234,7 @@ export default function LaporanPage() {
           </thead>
           <tbody>
             {stats.distribusiKategoriBaru.map((d) => (
-              <tr key={d.label} className="odd:bg-white even:bg-slate-50/50">
+              <tr key={d.label} className="odd:bg-white even:bg-emerald-50/25">
                 <td className="border border-slate-300 px-3 py-1.5 text-slate-700">
                   {d.label} · {d.nama}
                 </td>
@@ -224,13 +255,13 @@ export default function LaporanPage() {
         </table>
         </div>
 
-        <h2 className="mb-3 mt-8 text-sm font-extrabold uppercase tracking-wide text-slate-800">
+        <h2 className="mb-3 mt-8 border-l-4 border-emerald-500 pl-2.5 text-sm font-extrabold uppercase tracking-wide text-slate-800">
           Distribusi Pendidikan per Jenis Kelamin
         </h2>
         <div className="overflow-x-auto">
         <table className="w-full border-collapse text-sm">
           <thead>
-            <tr className="bg-slate-100 text-[11px] uppercase tracking-wider text-slate-600">
+            <tr className="bg-emerald-50/80 text-[11px] uppercase tracking-wider text-emerald-900/70">
               <th className="border border-slate-300 px-3 py-2.5 text-left font-bold">Pendidikan</th>
               <th className="border border-slate-300 px-3 py-2.5 text-center font-bold">Laki-laki</th>
               <th className="border border-slate-300 px-3 py-2.5 text-center font-bold">Perempuan</th>
@@ -239,7 +270,7 @@ export default function LaporanPage() {
           </thead>
           <tbody>
             {stats.distribusiPendidikan.map((d) => (
-              <tr key={d.label} className="odd:bg-white even:bg-slate-50/50">
+              <tr key={d.label} className="odd:bg-white even:bg-emerald-50/25">
                 <td className="border border-slate-300 px-3 py-1.5 text-slate-700">
                   {d.label} · {d.nama}
                 </td>
