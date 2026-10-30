@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
-import { Icon } from "@/components/ui";
+import { Botanical, Icon } from "@/components/ui";
 import { fetchApi, subscribeApi } from "@/lib/clientApi";
 
 const NAV_UTAMA = [
@@ -30,26 +30,6 @@ function inisial(nama: string, username: string): string {
     .map((w) => w[0])
     .join("");
   return (dariNama || username.slice(0, 2) || "?").toUpperCase();
-}
-
-/** Siluet daun transparan untuk latar belakang & sidebar. */
-function Botanical({ className = "" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 240 300" fill="none" aria-hidden className={className}>
-      <path
-        d="M120 292C120 214 120 118 120 10"
-        stroke="currentColor"
-        strokeWidth="1.3"
-        strokeLinecap="round"
-      />
-      <path d="M120 232c-38-4-64-30-66-68 38 4 64 30 66 68Z" fill="currentColor" fillOpacity=".42" />
-      <path d="M120 186c34-6 56-30 58-64-34 6-56 30-58 64Z" fill="currentColor" fillOpacity=".32" />
-      <path d="M120 148c-32-4-54-26-56-58 32 4 54 26 56 58Z" fill="currentColor" fillOpacity=".26" />
-      <path d="M120 108c28-6 46-28 48-56-28 6-46 28-48 56Z" fill="currentColor" fillOpacity=".2" />
-      <path d="M120 72c-22-4-38-20-40-42 22 4 38 20 40 42Z" fill="currentColor" fillOpacity=".16" />
-      <path d="M120 40c18-4 30-18 32-36-18 4-30 18-32 36Z" fill="currentColor" fillOpacity=".12" />
-    </svg>
-  );
 }
 
 export default function AppShell({ children }: { children: ReactNode }) {
@@ -115,16 +95,30 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
+  const isStruktur = pathname === "/struktur";
+
   const avatarText = inisial(me?.user.nama ?? "", me?.user.username ?? "");
 
   return (
     <div className="relative min-h-screen">
       <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-        <div className="absolute -left-40 -top-32 h-[460px] w-[460px] rounded-full bg-emerald-200/30 blur-3xl" />
-        <div className="absolute -right-32 top-1/4 h-[420px] w-[420px] rounded-full bg-sky-200/25 blur-3xl" />
-        <div className="absolute -bottom-40 left-1/3 h-[460px] w-[460px] rounded-full bg-rose-200/20 blur-3xl" />
-        <Botanical className="absolute -right-12 top-20 h-[380px] w-[300px] rotate-[8deg] text-emerald-800 opacity-[0.07] md:right-16 md:top-24" />
-        <Botanical className="absolute -left-20 bottom-10 h-[340px] w-[280px] -rotate-[12deg] text-teal-800 opacity-[0.055] md:left-[300px]" />
+        {isStruktur ? (
+          <>
+            <div className="absolute inset-0 bg-gradient-to-br from-[#fffdf6] via-[#f6fbf7] to-[#eef8f2]" />
+            <div className="absolute -left-32 -top-24 h-[420px] w-[420px] rounded-full bg-emerald-100/50 blur-3xl" />
+            <div className="absolute -right-24 bottom-0 h-[380px] w-[380px] rounded-full bg-teal-100/40 blur-3xl" />
+            <Botanical className="absolute -right-10 top-10 h-[360px] w-[300px] rotate-[8deg] text-emerald-900 opacity-[0.06] md:right-10" />
+            <Botanical className="absolute -left-16 bottom-8 h-[320px] w-[260px] -rotate-[14deg] text-teal-900 opacity-[0.05] md:left-[280px]" />
+          </>
+        ) : (
+          <>
+            <div className="absolute -left-40 -top-32 h-[460px] w-[460px] rounded-full bg-emerald-200/30 blur-3xl" />
+            <div className="absolute -right-32 top-1/4 h-[420px] w-[420px] rounded-full bg-sky-200/25 blur-3xl" />
+            <div className="absolute -bottom-40 left-1/3 h-[460px] w-[460px] rounded-full bg-rose-200/20 blur-3xl" />
+            <Botanical className="absolute -right-12 top-20 h-[380px] w-[300px] rotate-[8deg] text-emerald-800 opacity-[0.07] md:right-16 md:top-24" />
+            <Botanical className="absolute -left-20 bottom-10 h-[340px] w-[280px] -rotate-[12deg] text-teal-800 opacity-[0.055] md:left-[300px]" />
+          </>
+        )}
       </div>
 
       <aside className="no-print fixed inset-y-0 left-0 z-30 hidden w-[260px] flex-col overflow-hidden border-r border-white/10 bg-gradient-to-b from-[#0F172A] via-[#101B2D] to-[#0B1120] md:flex">
@@ -230,7 +224,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
         <Link
           href="/akun"
           className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 text-xs font-bold text-white ring-2 ring-emerald-400/30"
-          aria-label="Akun saya"
+          aria-label={`Akun saya ${avatarText}`}
         >
           {avatarText}
         </Link>

@@ -77,6 +77,26 @@ export function Icon({
   );
 }
 
+/** Siluet daun transparan untuk latar belakang & sidebar. */
+export function Botanical({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 240 300" fill="none" aria-hidden className={className}>
+      <path
+        d="M120 292C120 214 120 118 120 10"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+      />
+      <path d="M120 232c-38-4-64-30-66-68 38 4 64 30 66 68Z" fill="currentColor" fillOpacity=".42" />
+      <path d="M120 186c34-6 56-30 58-64-34 6-56 30-58 64Z" fill="currentColor" fillOpacity=".32" />
+      <path d="M120 148c-32-4-54-26-56-58 32 4 54 26 56 58Z" fill="currentColor" fillOpacity=".26" />
+      <path d="M120 108c28-6 46-28 48-56-28 6-46 28-48 56Z" fill="currentColor" fillOpacity=".2" />
+      <path d="M120 72c-22-4-38-20-40-42 22 4 38 20 40 42Z" fill="currentColor" fillOpacity=".16" />
+      <path d="M120 40c18-4 30-18 32-36-18 4-30 18-32 36Z" fill="currentColor" fillOpacity=".12" />
+    </svg>
+  );
+}
+
 export function Card({
   children,
   className = "",
@@ -138,7 +158,7 @@ export function PageHeader({
 type BtnProps = {
   children?: ReactNode;
   onClick?: () => void;
-  variant?: "primary" | "secondary" | "danger" | "ghost";
+  variant?: "primary" | "secondary" | "danger" | "ghost" | "soft";
   size?: "sm" | "md";
   type?: "button" | "submit";
   disabled?: boolean;
@@ -159,9 +179,11 @@ export function Btn({
   const sizes = { sm: "px-3 py-1.5 text-xs", md: "px-4 py-2.5 text-sm" };
   const variants = {
     primary:
-      "bg-emerald-600 text-white shadow-sm shadow-emerald-600/25 hover:bg-emerald-500",
+      "bg-emerald-700 text-white shadow-sm shadow-emerald-700/25 hover:bg-emerald-800",
     secondary:
       "bg-white/70 text-slate-700 ring-1 ring-slate-200/80 shadow-xs backdrop-blur-md hover:bg-white/90 hover:ring-slate-300",
+    soft:
+      "bg-emerald-50/90 text-emerald-700 ring-1 ring-emerald-200/80 hover:bg-emerald-100 hover:text-emerald-800 hover:ring-emerald-300",
     danger: "bg-red-600 text-white shadow-sm shadow-red-600/25 hover:bg-red-500",
     ghost: "text-slate-500 hover:bg-slate-100 hover:text-slate-800",
   };

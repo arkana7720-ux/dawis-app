@@ -15,7 +15,7 @@ import {
   Skeleton,
   Spinner,
 } from "@/components/ui";
-import { validasiWarga } from "@/lib/calc";
+import { isKepalaKeluarga, validasiWarga } from "@/lib/calc";
 import { WargaFields, emptyWargaValues } from "@/components/WargaFields";
 import { fetchApi, invalidateApi } from "@/lib/clientApi";
 
@@ -79,8 +79,8 @@ function MenuTombol({
         onClick={onToggle}
         className={`rounded-lg p-1.5 transition-colors ${
           terbuka
-            ? "bg-slate-100 text-slate-700"
-            : "text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+            ? "bg-emerald-50 text-emerald-700"
+            : "text-slate-400 hover:bg-emerald-50/70 hover:text-emerald-700"
         }`}
       >
         <Icon name="dots" className="h-4 w-4" />
@@ -88,7 +88,7 @@ function MenuTombol({
       {terbuka && (
         <>
           <div className="fixed inset-0 z-30" onClick={onToggle} />
-          <div className="absolute right-0 top-full z-40 mt-1 w-44 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-xl shadow-slate-900/10">
+          <div className="absolute right-0 top-full z-40 mt-1 w-44 overflow-hidden rounded-xl border border-white/70 bg-white/90 py-1 shadow-xl shadow-slate-900/10 backdrop-blur-md">
             {children}
           </div>
         </>
@@ -113,12 +113,54 @@ function MenuItem({
       type="button"
       onClick={onClick}
       className={`flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold transition-colors ${
-        bahaya ? "text-red-600 hover:bg-red-50" : "text-slate-600 hover:bg-slate-50"
+        bahaya
+          ? "text-red-600 hover:bg-red-50"
+          : "text-slate-600 hover:bg-emerald-50/70 hover:text-emerald-800"
       }`}
     >
       <Icon name={ikon} className="h-3.5 w-3.5" />
       {label}
     </button>
+  );
+}
+
+/** Kartu ringkasan kecil bergaya glassmorphism dengan aksen pastel. */
+function RingkasanCard({
+  label,
+  nilai,
+  icon,
+  tint,
+  accent,
+}: {
+  label: string;
+  nilai: number;
+  icon: string;
+  tint: string;
+  accent: string;
+}) {
+  return (
+    <div className="group relative flex min-h-[96px] flex-col justify-center overflow-hidden rounded-2xl border border-white/70 bg-white/60 p-4 shadow-[0_16px_40px_-28px_rgba(15,23,42,0.45)] ring-1 ring-slate-900/[0.04] backdrop-blur-md transition-colors duration-300 hover:bg-white/80 sm:min-h-[104px] sm:p-5">
+      <span className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${tint}`} />
+      <Icon
+        name="leaf"
+        className="pointer-events-none absolute -bottom-3 -right-3 h-16 w-16 text-emerald-900 opacity-[0.05] transition-transform duration-500 group-hover:rotate-6 group-hover:scale-110"
+      />
+      <div className="relative flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-600">
+            {label}
+          </p>
+          <p className="mt-1.5 text-[24px] font-extrabold leading-none tracking-tight tabular-nums text-slate-900 sm:text-[28px]">
+            {nilai}
+          </p>
+        </div>
+        <span
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${accent} text-white shadow-lg shadow-slate-900/15 ring-1 ring-inset ring-white/30 transition-transform duration-300 group-hover:scale-110 sm:h-10 sm:w-10`}
+        >
+          <Icon name={icon} className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
+        </span>
+      </div>
+    </div>
   );
 }
 
@@ -396,11 +438,19 @@ export default function StrukturPage() {
     return (
       <>
         <div className="mb-6 flex items-end justify-between">
-          <Skeleton className="h-9 w-48" />
+          <div>
+            <Skeleton className="h-9 w-48" />
+            <Skeleton className="mt-2 h-4 w-72" />
+          </div>
           <Skeleton className="h-10 w-36" />
         </div>
+        <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-[104px]" />
+          ))}
+        </div>
         <Skeleton className="h-64" />
-        <Skeleton className="mt-4 h-64" />
+        <Skeleton className="mt-5 h-64" />
       </>
     );
 
@@ -429,7 +479,7 @@ export default function StrukturPage() {
 
       {data.length === 0 && (
         <Card className="mb-5 p-8 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500 ring-1 ring-emerald-100">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white/70 text-emerald-600 ring-1 ring-emerald-200/70 backdrop-blur-md">
             <Icon name="building" className="h-7 w-7" />
           </div>
           <p className="mt-4 text-sm font-bold text-slate-700">Belum ada kelompok</p>
@@ -448,28 +498,38 @@ export default function StrukturPage() {
 
       {data.length > 0 && (
         <>
-          <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {[
-              { label: "Kelompok", nilai: ringkasan.kelompok },
-              { label: "Bangunan", nilai: ringkasan.bangunan },
-              { label: "Keluarga", nilai: ringkasan.keluarga },
-              { label: "Jiwa", nilai: ringkasan.jiwa },
-            ].map((s) => (
-              <div
-                key={s.label}
-                className="rounded-xl bg-white px-3.5 py-2.5 ring-1 ring-slate-200/70"
-              >
-                <p className="text-lg font-extrabold leading-tight tabular-nums text-slate-800">
-                  {s.nilai}
-                </p>
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                  {s.label}
-                </p>
-              </div>
-            ))}
+          <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+            <RingkasanCard
+              label="Kelompok"
+              nilai={ringkasan.kelompok}
+              icon="family"
+              tint="from-emerald-100/80 via-white/40 to-teal-100/60"
+              accent="from-emerald-500 to-teal-600"
+            />
+            <RingkasanCard
+              label="Bangunan"
+              nilai={ringkasan.bangunan}
+              icon="building"
+              tint="from-sky-100/80 via-white/40 to-blue-100/60"
+              accent="from-sky-500 to-blue-600"
+            />
+            <RingkasanCard
+              label="Keluarga"
+              nilai={ringkasan.keluarga}
+              icon="key"
+              tint="from-amber-100/80 via-white/40 to-orange-100/60"
+              accent="from-amber-400 to-orange-500"
+            />
+            <RingkasanCard
+              label="Jiwa"
+              nilai={ringkasan.jiwa}
+              icon="users"
+              tint="from-violet-100/80 via-white/40 to-purple-100/60"
+              accent="from-violet-500 to-purple-600"
+            />
           </div>
 
-          <div className="relative mb-4">
+          <div className="relative mb-5">
             <Icon
               name="search"
               className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
@@ -486,7 +546,7 @@ export default function StrukturPage() {
                 type="button"
                 aria-label="Hapus pencarian"
                 onClick={() => setCari("")}
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 transition-colors hover:bg-emerald-50 hover:text-emerald-700"
               >
                 <Icon name="x" className="h-4 w-4" />
               </button>
@@ -495,7 +555,7 @@ export default function StrukturPage() {
 
           {hasilCari ? (
             <Card>
-              <div className="border-b border-slate-100 px-4 py-3">
+              <div className="border-b border-white/70 px-5 py-4 sm:px-6">
                 <p className="text-sm font-bold text-slate-800">
                   Hasil pencarian “{cari.trim()}”
                 </p>
@@ -506,21 +566,21 @@ export default function StrukturPage() {
                 </p>
               </div>
               {hasilCari.length > 0 && (
-                <ul className="divide-y divide-slate-50">
+                <ul className="divide-y divide-white/60">
                   {hasilCari.slice(0, 40).map((h) => (
                     <li
                       key={h.kunci}
-                      className="flex items-center justify-between gap-2 px-3 py-2.5 sm:px-4"
+                      className="flex items-center justify-between gap-2 px-3 py-2.5 transition-colors hover:bg-white/50 sm:px-4"
                     >
                       <div className="flex min-w-0 items-center gap-2.5">
                         {h.jenis === "warga" ? (
                           <Avatar name={h.judul} size="sm" />
                         ) : (
                           <span
-                            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ring-1 ${
                               h.jenis === "keluarga"
-                                ? "bg-amber-50 text-amber-600"
-                                : "bg-slate-100 text-slate-500"
+                                ? "bg-amber-50 text-amber-600 ring-amber-100"
+                                : "bg-sky-50 text-sky-600 ring-sky-100"
                             }`}
                           >
                             <Icon
@@ -530,17 +590,17 @@ export default function StrukturPage() {
                           </span>
                         )}
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-slate-800">
+                          <p className="truncate text-sm font-bold text-slate-800">
                             {h.judul}
                           </p>
-                          <p className="truncate text-[11px] text-slate-400">
+                          <p className="truncate text-[11px] text-slate-500">
                             {h.jejak} · {h.detail}
                           </p>
                         </div>
                       </div>
                       <Btn
                         size="sm"
-                        variant="secondary"
+                        variant="soft"
                         onClick={() =>
                           h.jenis === "warga" && h.anggota && h.keluarga
                             ? editAnggota(h.keluarga, h.anggota)
@@ -554,7 +614,7 @@ export default function StrukturPage() {
                 </ul>
               )}
               {hasilCari.length > 40 && (
-                <p className="border-t border-slate-100 px-4 py-2.5 text-[11px] text-slate-400">
+                <p className="border-t border-white/70 px-4 py-2.5 text-[11px] text-slate-500">
                   Menampilkan 40 dari {hasilCari.length} hasil. Persempit kata kunci untuk melihat
                   sisanya.
                 </p>
@@ -562,23 +622,25 @@ export default function StrukturPage() {
             </Card>
           ) : (
             <>
-              <div className="mb-4 flex flex-wrap gap-1.5 rounded-xl bg-slate-100 p-1">
+              <div className="mb-5 flex flex-wrap gap-1.5 rounded-2xl border border-white/70 bg-white/50 p-1.5 shadow-sm shadow-slate-900/5 backdrop-blur-md">
                 {data.map((k) => {
                   const sel = k.id === active?.id;
                   return (
                     <button
                       key={k.id}
                       onClick={() => setTab(k.id)}
-                      className={`inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-bold transition-all sm:text-sm ${
+                      className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all sm:text-sm ${
                         sel
-                          ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-200"
-                          : "text-slate-500 hover:text-slate-700"
+                          ? "bg-white text-emerald-700 shadow-sm ring-1 ring-emerald-200/80"
+                          : "text-slate-600 hover:bg-white/70 hover:text-slate-900"
                       }`}
                     >
                       {k.nama}
                       <span
                         className={`rounded-md px-1.5 py-0.5 text-[10px] font-extrabold tabular-nums ${
-                          sel ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-600"
+                          sel
+                            ? "bg-emerald-100 text-emerald-700"
+                            : "bg-white/70 text-slate-500 ring-1 ring-slate-200/60"
                         }`}
                       >
                         {k.bangunan.length} rumah
@@ -597,20 +659,26 @@ export default function StrukturPage() {
           return (
             <div key={k.id} id={`kel-${k.id}`}>
               <Card>
-                <div className="flex flex-wrap items-center justify-between gap-3 rounded-t-2xl border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white px-4 py-3.5 sm:px-5">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 text-white shadow-md shadow-emerald-500/20">
+                <div className="relative flex flex-wrap items-center justify-between gap-3 overflow-hidden rounded-t-2xl border-b border-white/70 bg-gradient-to-r from-emerald-50/90 via-teal-50/60 to-white/80 px-4 py-4 sm:px-5">
+                  <Icon
+                    name="leaf"
+                    className="pointer-events-none absolute -right-2 -top-5 h-24 w-24 text-emerald-800 opacity-[0.05]"
+                  />
+                  <div className="relative flex min-w-0 items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/25 ring-1 ring-inset ring-white/30">
                       <Icon name="family" className="h-5 w-5" />
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate font-bold text-slate-800">{k.nama}</p>
-                      <p className="text-xs text-slate-500">
+                      <p className="truncate text-[15px] font-bold tracking-tight text-slate-900">
+                        {k.nama}
+                      </p>
+                      <p className="text-xs text-slate-600">
                         <span className="font-mono text-[11px]">{k.kode || "-"}</span> ·{" "}
                         {k.bangunan.length} bangunan · {totalKeluarga} keluarga · {totalJiwa} jiwa
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5">
+                  <div className="relative flex items-center gap-1.5">
                     <Btn
                       size="sm"
                       onClick={() => {
@@ -653,7 +721,7 @@ export default function StrukturPage() {
                   </div>
                 </div>
 
-                <div className="divide-y divide-slate-100">
+                <div className="divide-y divide-white/60">
                   {k.bangunan.length === 0 && (
                     <div className="px-5 py-10 text-center">
                       <p className="text-sm font-semibold text-slate-600">Belum ada bangunan</p>
@@ -682,9 +750,9 @@ export default function StrukturPage() {
 
                   {k.bangunan.map((b) => (
                     <div key={b.id} id={`bng-${b.id}`}>
-                      <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-50/70 px-3 py-2.5 sm:px-4">
+                      <div className="flex flex-wrap items-center justify-between gap-2 bg-white/40 px-3 py-3 transition-colors hover:bg-white/65 sm:px-4">
                         <div className="flex min-w-0 items-center gap-2.5">
-                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-slate-500 ring-1 ring-slate-200">
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/80 text-emerald-600 ring-1 ring-emerald-100">
                             <Icon name="building" className="h-4 w-4" />
                           </span>
                           <div className="min-w-0">
@@ -702,7 +770,7 @@ export default function StrukturPage() {
                         <div className="flex items-center gap-1.5">
                           <Btn
                             size="sm"
-                            variant="secondary"
+                            variant="soft"
                             onClick={() => {
                               setErr("");
                               setFamModal({
@@ -750,7 +818,7 @@ export default function StrukturPage() {
                       </div>
 
                       {b.keluarga.length === 0 ? (
-                        <p className="px-4 pb-3 pl-12 text-xs text-slate-400 sm:pl-14">
+                        <p className="px-4 pb-3 pl-12 text-xs text-slate-500 sm:pl-14">
                           Belum ada keluarga di bangunan ini. Tekan “+ Keluarga” untuk menambah.
                         </p>
                       ) : (
@@ -761,34 +829,34 @@ export default function StrukturPage() {
                               <div
                                 key={f.id}
                                 id={`fam-${f.id}`}
-                                className="border-t border-slate-50 first:border-t-0"
+                                className="border-t border-white/60 first:border-t-0"
                               >
                                 <div className="flex items-center gap-1 pr-1.5 sm:pr-2.5">
                                   <button
                                     type="button"
                                     onClick={() => toggleFam(f.id)}
                                     aria-expanded={buka}
-                                    className="flex min-w-0 flex-1 items-center gap-2 rounded-lg px-2 py-2 text-left transition-colors hover:bg-slate-50"
+                                    className="flex min-w-0 flex-1 items-center gap-2 rounded-xl px-2 py-2.5 text-left transition-colors hover:bg-emerald-50/60"
                                   >
                                     <Icon
                                       name={buka ? "chevronDown" : "chevron"}
-                                      className="h-3.5 w-3.5 shrink-0 text-slate-400"
+                                      className="h-3.5 w-3.5 shrink-0 text-emerald-500/80"
                                     />
-                                    <span className="truncate text-sm font-semibold text-slate-700">
+                                    <span className="truncate text-sm font-bold text-slate-900">
                                       {f.nama_krt}
                                     </span>
-                                    <span className="shrink-0 rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-500">
+                                    <span className="shrink-0 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-100">
                                       {f.anggota.length} orang
                                     </span>
                                     {f.catatan && (
-                                      <span className="hidden shrink-0 truncate text-[11px] text-slate-400 sm:inline">
+                                      <span className="hidden shrink-0 truncate text-[11px] text-slate-500 sm:inline">
                                         ({f.catatan})
                                       </span>
                                     )}
                                   </button>
                                   <Btn
                                     size="sm"
-                                    variant="ghost"
+                                    variant="soft"
                                     onClick={() => tambahAnggota(f)}
                                   >
                                     <Icon name="plus" className="h-3.5 w-3.5" />
@@ -827,24 +895,30 @@ export default function StrukturPage() {
 
                                 {buka &&
                                   (f.anggota.length === 0 ? (
-                                    <p className="mb-2 ml-7 rounded-lg bg-amber-50 px-3 py-2 text-[11px] font-medium text-amber-700 sm:ml-8">
+                                    <p className="mb-2 ml-7 rounded-lg bg-amber-50/80 px-3 py-2 text-[11px] font-medium text-amber-700 ring-1 ring-amber-100 sm:ml-8">
                                       Belum ada anggota. Tekan “+ Anggota” untuk menambah warga.
                                     </p>
                                   ) : (
-                                    <ul className="mb-2 ml-6 mr-1.5 space-y-1.5 border-l-2 border-emerald-100 pl-3 sm:ml-7 sm:mr-2.5">
+                                    <ul className="mb-2 ml-6 mr-1.5 space-y-1.5 border-l-2 border-emerald-200/70 pl-3 sm:ml-7 sm:mr-2.5">
                                       {f.anggota.map((a) => (
                                         <li
                                           key={a.id}
                                           id={`wrg-${a.id}`}
-                                          className="flex items-center justify-between gap-2 rounded-xl bg-white px-2.5 py-2 ring-1 ring-slate-100"
+                                          className="flex items-center justify-between gap-2 rounded-xl bg-white/75 px-2.5 py-2 ring-1 ring-white/70 transition-colors hover:bg-emerald-50/60 hover:ring-emerald-100"
                                         >
                                           <span className="flex min-w-0 items-center gap-2">
                                             <Avatar name={a.nama} size="sm" />
                                             <span className="min-w-0">
-                                              <span className="block truncate text-sm font-medium text-slate-700">
+                                              <span
+                                                className={`block truncate text-sm ${
+                                                  isKepalaKeluarga(a.hubungan)
+                                                    ? "font-bold text-slate-900"
+                                                    : "font-medium text-slate-600"
+                                                }`}
+                                              >
                                                 {a.nama}
                                               </span>
-                                              <span className="block text-[11px] text-slate-400">
+                                              <span className="block text-[11px] text-slate-500">
                                                 {a.hubungan || "-"} · {a.jenis_kelamin || "?"} ·{" "}
                                                 {a.usia ?? "?"} th
                                               </span>
@@ -972,7 +1046,7 @@ export default function StrukturPage() {
       </Modal>
 
       <Modal open={wrgModal.open} onClose={() => { setWrgModal({ ...emptyWarga, open: false }); setErr(""); }} title={wrgModal.id ? "Edit Anggota" : "Tambah Anggota"} wide>
-        <div className="rounded-xl bg-slate-50 px-3.5 py-2.5 text-xs text-slate-500">
+        <div className="rounded-xl bg-white/60 px-3.5 py-2.5 text-xs text-slate-500 ring-1 ring-white/70">
           <span className="font-semibold text-slate-400">Keluarga:</span>{" "}
           <span className="font-semibold text-slate-700">
             {keluargaAktif?.nama_krt ?? "-"}
