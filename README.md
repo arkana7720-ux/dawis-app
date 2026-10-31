@@ -123,7 +123,8 @@ Jalankan berurutan di **SQL Editor**:
 2. `supabase/migration-v2.sql`
 3. `supabase/migration-v3-auth.sql`
 4. `supabase/migration-v4-admin.sql`
-5. `supabase/claim-existing-data.sql` (kalau ada data lama yang perlu dipindahkan)
+5. `supabase/migration-v5-wa-template.sql`
+6. `supabase/claim-existing-data.sql` (kalau ada data lama yang perlu dipindahkan)
 
 Lalu isi `.env.local` (Settings → API) dan daftarkan akun pertama lewat
 `/register`. Jadikan akun itu admin:

@@ -37,6 +37,12 @@ import {
   validasiWarga,
 } from "@/lib/calc";
 import { fetchApi, invalidateApi } from "@/lib/clientApi";
+import {
+  DEFAULT_WA_TEMPLATE,
+  WA_PLACEHOLDERS,
+  renderWaTemplate,
+  waHref,
+} from "@/lib/wa";
 
 interface WargaRow {
   id: number;
@@ -150,6 +156,18 @@ export default function WargaPage() {
   const [lastKeluargaId, setLastKeluargaId] = useState<number | null>(null);
   const [formKey, setFormKey] = useState(0);
   const [strukturLoaded, setStrukturLoaded] = useState(false);
+  const [waTpl, setWaTpl] = useState(DEFAULT_WA_TEMPLATE);
+  const [waModal, setWaModal] = useState<{ open: boolean; w: WargaRow | null }>({
+    open: false,
+    w: null,
+  });
+  const [waText, setWaText] = useState("");
+  const [waTplOpen, setWaTplOpen] = useState(false);
+  const [waTplDraft, setWaTplDraft] = useState("");
+  const [waSaving, setWaSaving] = useState(false);
+  const [waMsg, setWaMsg] = useState("");
+  const [waErr, setWaErr] = useState("");
+  const waTplRef = useRef<HTMLTextAreaElement>(null);
 
   const load = () => {
     setLoadErr("");
@@ -167,6 +185,16 @@ export default function WargaPage() {
   useEffect(() => {
     load();
     loadStruktur();
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => {
+        const tpl = j?.user?.wa_template;
+        if (typeof tpl === "string" && tpl.trim()) setWaTpl(tpl);
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -405,11 +433,62 @@ export default function WargaPage() {
     load();
   };
 
-  const waLink = (w: WargaRow) => {
-    const msg = encodeURIComponent(
-      `Assalamualaikum, mohon konfirmasi data warga Dasa Wisma RT 04/RW 11:\n\nNama: ${w.nama}\nHubungan: ${w.hubungan || "-"}\nAlamat: ${w.bangunan_nama} (${w.kelompok_nama})\nUsia: ${w.usia ?? "-"} tahun\n\nTerima kasih.`
-    );
-    return `https://wa.me/?text=${msg}`;
+  const dataWa = (w: WargaRow) => ({
+    nama: w.nama,
+    hubungan: w.hubungan,
+    alamat: w.bangunan_nama,
+    kelompok: w.kelompok_nama,
+    keluarga: w.keluarga_nama,
+    usia: w.usia,
+  });
+
+  const pesanWa = (w: WargaRow, tpl = waTpl) => renderWaTemplate(tpl, dataWa(w));
+
+  const bukaWa = (w: WargaRow) => {
+    setWaModal({ open: true, w });
+    setWaText(pesanWa(w));
+    setWaTplDraft(waTpl);
+    setWaTplOpen(false);
+    setWaMsg("");
+    setWaErr("");
+  };
+
+  const sisipToken = (token: string) => {
+    const el = waTplRef.current;
+    const mulai = el?.selectionStart ?? waTplDraft.length;
+    const akhir = el?.selectionEnd ?? waTplDraft.length;
+    const baru = waTplDraft.slice(0, mulai) + token + waTplDraft.slice(akhir);
+    setWaTplDraft(baru);
+    requestAnimationFrame(() => {
+      el?.focus();
+      el?.setSelectionRange(mulai + token.length, mulai + token.length);
+    });
+  };
+
+  const simpanTemplate = async () => {
+    if (!waModal.w) return;
+    setWaSaving(true);
+    setWaMsg("");
+    setWaErr("");
+    try {
+      const res = await fetch("/api/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ wa_template: waTplDraft }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j.error || "Gagal menyimpan template");
+      const tplBaru = typeof j.wa_template === "string" && j.wa_template.trim()
+        ? j.wa_template
+        : DEFAULT_WA_TEMPLATE;
+      if (waText === pesanWa(waModal.w)) setWaText(pesanWa(waModal.w, tplBaru));
+      setWaTpl(tplBaru);
+      setWaMsg("Template default tersimpan di akun Anda.");
+    } catch (e) {
+      setWaErr(e instanceof Error ? e.message : String(e));
+    } finally {
+      setWaSaving(false);
+    }
   };
 
   const katColor = (k: string) =>
@@ -857,9 +936,14 @@ export default function WargaPage() {
                           <IconBtn icon="eye" tone="primary" title="Detail Warga" onClick={() => setDetailRow(w)} />
                           <IconBtn icon="edit" title="Edit" onClick={() => openEdit(w)} />
                           <IconBtn icon="swap" title="Ubah Status" onClick={() => openStatus(w)} />
-                          <a href={waLink(w)} target="_blank" rel="noreferrer" title="Chat WhatsApp" className="rounded-lg p-1.5 text-slate-400 transition-all hover:scale-110 hover:bg-emerald-50 hover:text-emerald-600">
+                          <button
+                            type="button"
+                            onClick={() => bukaWa(w)}
+                            title="Chat WhatsApp"
+                            className="rounded-lg p-1.5 text-slate-400 transition-all hover:scale-110 hover:bg-emerald-50 hover:text-emerald-600"
+                          >
                             <Icon name="wa" className="h-4 w-4" />
-                          </a>
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -952,12 +1036,10 @@ export default function WargaPage() {
                     Detail Warga
                   </Btn>
                   {fStatus === "aktif" ? (
-                    <a href={waLink(w)} target="_blank" rel="noreferrer">
-                      <Btn size="sm" className="w-full">
-                        <Icon name="wa" className="h-3.5 w-3.5" />
-                        Chat WA
-                      </Btn>
-                    </a>
+                    <Btn size="sm" className="w-full" onClick={() => bukaWa(w)}>
+                      <Icon name="wa" className="h-3.5 w-3.5" />
+                      Chat WA
+                    </Btn>
                   ) : (
                     <Btn size="sm" onClick={() => openStatus(w)}>
                       <Icon name="refresh" className="h-3.5 w-3.5" />
@@ -1053,12 +1135,10 @@ export default function WargaPage() {
 
             <div className="grid grid-cols-3 gap-2 pt-1">
               {detailRow.status_warga === "aktif" && (
-                <a href={waLink(detailRow)} target="_blank" rel="noreferrer">
-                  <Btn size="sm" className="w-full">
-                    <Icon name="wa" className="h-3.5 w-3.5" />
-                    WA
-                  </Btn>
-                </a>
+                <Btn size="sm" className="w-full" onClick={() => bukaWa(detailRow)}>
+                  <Icon name="wa" className="h-3.5 w-3.5" />
+                  WA
+                </Btn>
               )}
               <Btn size="sm" variant="secondary" onClick={() => { openEdit(detailRow); setDetailRow(null); }}>
                 <Icon name="edit" className="h-3.5 w-3.5" />
@@ -1249,6 +1329,139 @@ export default function WargaPage() {
             {saving ? "Menyimpan..." : "Simpan"}
           </Btn>
         </div>
+      </Modal>
+
+      <Modal
+        open={waModal.open}
+        onClose={() => setWaModal({ open: false, w: null })}
+        title="Kirim WhatsApp"
+        wide
+      >
+        {waModal.w && (
+          <>
+            <div className="flex items-center gap-3 rounded-xl bg-gradient-to-r from-emerald-50/90 via-teal-50/50 to-white/70 p-3 ring-1 ring-white/70">
+              <GenderAvatar w={waModal.w} />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-bold text-slate-900">{waModal.w.nama}</p>
+                <p className="truncate text-xs text-slate-500">
+                  {waModal.w.bangunan_nama} — {waModal.w.kelompok_nama}
+                </p>
+              </div>
+            </div>
+
+            <Field
+              label="Pesan WhatsApp"
+              hint="Bisa diubah sebelum dikirim. Perubahan di sini tidak otomatis mengubah template default."
+            >
+              <textarea
+                value={waText}
+                onChange={(e) => setWaText(e.target.value)}
+                rows={9}
+                className={`${inputCls} resize-y font-normal leading-relaxed`}
+              />
+            </Field>
+
+            <div className="overflow-hidden rounded-xl border border-white/70 bg-white/40">
+              <button
+                type="button"
+                onClick={() => setWaTplOpen((v) => !v)}
+                className="flex w-full items-center justify-between gap-2 px-3.5 py-2.5 text-left transition-colors hover:bg-white/60"
+                aria-expanded={waTplOpen}
+              >
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600">
+                  <Icon name="edit" className="h-3.5 w-3.5 text-emerald-600" />
+                  Atur template default
+                </span>
+                <Icon
+                  name="chevronDown"
+                  className={`h-4 w-4 text-slate-500 transition-transform ${waTplOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+
+              {waTplOpen && (
+                <div className="space-y-3 border-t border-white/70 px-3.5 py-3">
+                  <p className="text-[11px] leading-relaxed text-slate-500">
+                    Template disimpan di akun Anda, jadi tetap sama saat dibuka dari HP lain. Klik
+                    token untuk menyisipkannya ke posisi kursor.
+                  </p>
+
+                  <textarea
+                    ref={waTplRef}
+                    value={waTplDraft}
+                    onChange={(e) => setWaTplDraft(e.target.value)}
+                    rows={7}
+                    aria-label="Template pesan WhatsApp"
+                    className={`${inputCls} resize-y font-mono text-xs leading-relaxed`}
+                  />
+
+                  <div className="flex flex-wrap gap-1.5">
+                    {WA_PLACEHOLDERS.map((p) => (
+                      <button
+                        key={p.token}
+                        type="button"
+                        onClick={() => sisipToken(p.token)}
+                        title={p.label}
+                        className="rounded-lg bg-emerald-50/90 px-2 py-1 font-mono text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200/80 transition-colors hover:bg-emerald-100"
+                      >
+                        {p.token}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Btn size="sm" onClick={simpanTemplate} disabled={waSaving}>
+                      {waSaving && <Spinner className="h-3.5 w-3.5" />}
+                      {waSaving ? "Menyimpan..." : "Simpan template"}
+                    </Btn>
+                    <Btn
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => setWaTplDraft(DEFAULT_WA_TEMPLATE)}
+                      disabled={waSaving}
+                    >
+                      Pakai bawaan
+                    </Btn>
+                    <span className="text-[11px] text-slate-400">
+                      {waTplDraft.length}/2000
+                    </span>
+                  </div>
+
+                  {waMsg && (
+                    <p className="flex items-center gap-1.5 rounded-lg bg-emerald-50/90 px-3 py-2 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200/70">
+                      <Icon name="check" className="h-3.5 w-3.5" />
+                      {waMsg}
+                    </p>
+                  )}
+                  {waErr && (
+                    <p className="rounded-lg bg-red-50 px-3 py-2 text-xs font-semibold text-red-600 ring-1 ring-red-200/70">
+                      {waErr}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-wrap justify-end gap-2 pt-1">
+              <Btn variant="secondary" onClick={() => setWaModal({ open: false, w: null })}>
+                Tutup
+              </Btn>
+              <Btn variant="soft" onClick={() => setWaText(pesanWa(waModal.w!))}>
+                <Icon name="refresh" className="h-3.5 w-3.5" />
+                Isi ulang pesan
+              </Btn>
+              <a
+                href={waHref(waText)}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => setWaModal({ open: false, w: null })}
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-emerald-700/25 transition-all hover:bg-emerald-800 active:scale-[0.98]"
+              >
+                <Icon name="wa" className="h-4 w-4" />
+                Kirim via WhatsApp
+              </a>
+            </div>
+          </>
+        )}
       </Modal>
 
       <TambahWargaWizard

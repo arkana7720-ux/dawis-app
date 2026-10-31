@@ -34,16 +34,38 @@ export interface Profile {
   username: string;
   nama: string;
   is_admin: boolean;
+  wa_template: string;
 }
 
+type ProfileDasar = Omit<Profile, "wa_template">;
+
+/**
+ * Ambil profil milik user.
+ *
+ * Kolom `wa_template` baru ada setelah migration-v5 dijalankan. Selama kolom
+ * itu belum ada, query pertama gagal — jangan sampai seluruh aplikasi ikut
+ * error, jadi kita ulangi tanpa kolom tersebut dan pakai template bawaan.
+ */
 export async function getProfile(
   db: SupabaseClient,
   userId: string
 ): Promise<Profile | null> {
-  const { data } = await db
+  const lengkap = await db
+    .from("profiles")
+    .select("id, username, nama, is_admin, wa_template")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (!lengkap.error) return (lengkap.data as Profile | null) ?? null;
+
+  const dasar = await db
     .from("profiles")
     .select("id, username, nama, is_admin")
     .eq("id", userId)
     .maybeSingle();
-  return (data as Profile | null) ?? null;
+
+  if (dasar.error) throw new Error(dasar.error.message);
+  if (!dasar.data) return null;
+
+  return { ...(dasar.data as ProfileDasar), wa_template: "" };
 }
