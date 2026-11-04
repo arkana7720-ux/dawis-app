@@ -40,6 +40,7 @@ const ICONS: Record<string, string> = {
   idcard:
     "M3 6a2 2 0 012-2h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6zm3 2.5a2 2 0 104 0 2 2 0 00-4 0zM5 16v-.5a3.5 3.5 0 017 0v.5H5zm8-6h6m-6 3h4",
   leaf: "M5 21c0-8 5-14 14-16-1 9-6 14-14 16zm0 0c3-5 7-9 12-11",
+  help: "M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z",
 };
 
 const FILLED = new Set(["wa"]);

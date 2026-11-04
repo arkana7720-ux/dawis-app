@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 import { Botanical, Icon } from "@/components/ui";
+import { InstallPrompt } from "@/components/InstallPrompt";
 import { fetchApi, subscribeApi } from "@/lib/clientApi";
 
 const NAV_UTAMA = [
@@ -11,7 +12,10 @@ const NAV_UTAMA = [
   { href: "/warga", label: "Data Warga", icon: "users" },
   { href: "/struktur", label: "Struktur Wilayah", icon: "building" },
   { href: "/laporan", label: "Laporan", icon: "report" },
+  { href: "/bantuan", label: "Bantuan", icon: "help" },
 ];
+
+const NAV_MOBILE = NAV_UTAMA.filter((n) => n.href !== "/bantuan");
 
 const NAV_ADMIN = { href: "/admin", label: "Kelola Akun", icon: "key" };
 
@@ -208,13 +212,22 @@ export default function AppShell({ children }: { children: ReactNode }) {
             <p className="text-[10px] font-medium text-slate-400">RT 04/RW 11 Rorotan</p>
           </div>
         </div>
-        <Link
-          href="/akun"
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 text-xs font-bold text-white ring-2 ring-emerald-400/30"
-          aria-label={`Akun saya ${avatarText}`}
-        >
-          {avatarText}
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/bantuan"
+            aria-label="Bantuan"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-slate-300 transition-colors hover:bg-white/20 hover:text-white"
+          >
+            <Icon name="help" className="h-4 w-4" />
+          </Link>
+          <Link
+            href="/akun"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 text-xs font-bold text-white ring-2 ring-emerald-400/30"
+            aria-label={`Akun saya ${avatarText}`}
+          >
+            {avatarText}
+          </Link>
+        </div>
       </header>
 
       <main className="relative z-10 pb-28 md:pb-10 md:pl-[260px]">
@@ -232,7 +245,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
         } gap-1 rounded-2xl border border-white/70 bg-white/75 p-1.5 shadow-xl shadow-slate-900/10 backdrop-blur-xl md:hidden`}
         style={{ marginBottom: "env(safe-area-inset-bottom)" }}
       >
-        {NAV.map((n) => (
+        {NAV_MOBILE.map((n) => (
           <Link
             key={n.href}
             href={n.href}
@@ -247,6 +260,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
           </Link>
         ))}
       </nav>
+      <InstallPrompt />
     </div>
   );
 }
