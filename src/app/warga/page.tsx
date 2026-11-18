@@ -521,7 +521,7 @@ export default function WargaPage() {
   const katFungColor = (k: string) =>
     k === "0-2"
       ? "slate"
-      : k === "3-5"
+      : k === "2-5"
         ? "amber"
         : k === "6-14"
           ? "green"
@@ -937,7 +937,7 @@ export default function WargaPage() {
                       <td className="px-3 py-3">
                         {w.kategori_usia_fungsional ? (
                           <Badge color={katFungColor(w.kategori_usia_fungsional) as any}>
-                            {labelKategoriUsiaFungsional(w.usia)}
+                            {labelKategoriUsiaFungsional(w.tanggal_lahir)}
                           </Badge>
                         ) : (
                           "-"
@@ -1057,7 +1057,7 @@ export default function WargaPage() {
                   )}
                   {w.kategori_usia_fungsional && (
                     <Badge color={katFungColor(w.kategori_usia_fungsional) as any}>
-                      {labelKategoriUsiaFungsional(w.usia)}
+                      {labelKategoriUsiaFungsional(w.tanggal_lahir)}
                     </Badge>
                   )}
                   {w.pendidikan && (
@@ -1143,7 +1143,7 @@ export default function WargaPage() {
                   label="Kategori Usia Fungsional"
                   value={
                     <Badge color={katFungColor(detailRow.kategori_usia_fungsional) as any}>
-                      {labelKategoriUsiaFungsional(detailRow.usia)}
+                      {labelKategoriUsiaFungsional(detailRow.tanggal_lahir)}
                     </Badge>
                   }
                 />
@@ -1370,9 +1370,10 @@ export default function WargaPage() {
 
         <p className="text-[11px] leading-relaxed text-slate-400">
           Usia, kategori usia, kategori usia baru (0-5/6-9/10-24/25-59/60+), kategori usia
-          fungsional (0-2/3-5/6-14/15-64/65+), pendidikan
-          (0-3/4-6/7-12/13-15/16-18/19-22/23+), dan status WUS/PUS dihitung otomatis dari
-          tanggal lahir.
+          fungsional (Bayi &lt;2 th, Balita 2-5 th, Anak 6-14 th, Produktif 15-64 th, Lansia
+          65+), pendidikan (0-3/4-6/7-12/13-15/16-18/19-22/23+), dan status WUS/PUS dihitung
+          otomatis dari tanggal lahir. Kategori fungsional memakai presisi hari, jadi anak
+          yang tepat berusia 2 tahun sudah masuk Balita.
         </p>
         <div className="flex flex-wrap justify-end gap-2 pt-1">
           <Btn variant="secondary" onClick={() => setModalOpen(false)}>

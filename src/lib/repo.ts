@@ -144,7 +144,7 @@ export async function getAllWarga(db: SupabaseClient): Promise<WargaRow[]> {
       kategori_usia: kategoriUsia(usia),
       kategori: kategori(usia),
       kategori_usia_baru: kategoriUsiaBaru(usia),
-      kategori_usia_fungsional: kategoriUsiaFungsional(usia),
+      kategori_usia_fungsional: kategoriUsiaFungsional(r.tanggal_lahir),
       pendidikan: pendidikanUsia(usia),
       wus: isWUS(r, usia),
       pus: isPUS(r, usia),

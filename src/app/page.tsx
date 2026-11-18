@@ -683,7 +683,7 @@ export default function DashboardPage() {
       <Card className="mt-5 overflow-hidden">
         <CardHeader
           title="Distribusi Kategori Usia Fungsional per Jenis Kelamin"
-          desc="Bayi 0-2 · Balita 3-5 · Anak 6-14 · Produktif 15-64 · Lansia 65+"
+          desc="Bayi 0-2 · Balita 2-5 · Anak 6-14 · Produktif 15-64 · Lansia 65+"
         />
         <div className="overflow-x-auto">
           <table className="w-full min-w-[480px] text-sm">

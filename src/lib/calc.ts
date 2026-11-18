@@ -238,29 +238,53 @@ export function labelKategoriUsiaBaru(usia: number | null): string {
 export const KATEGORI_USIA_FUNGSIONAL_LIST: Array<{
   range: string;
   nama: string;
-  min: number;
-  max: number | null;
+  /** Batas atas (tahun, eksklusif). null = tanpa batas. */
+  maxTahun: number | null;
 }> = [
-  { range: "0-2", nama: "Bayi", min: 0, max: 2 },
-  { range: "3-5", nama: "Balita", min: 3, max: 5 },
-  { range: "6-14", nama: "Anak", min: 6, max: 14 },
-  { range: "15-64", nama: "Produktif", min: 15, max: 64 },
-  { range: "65+", nama: "Lansia", min: 65, max: null },
+  { range: "0-2", nama: "Bayi", maxTahun: 2 },
+  { range: "2-5", nama: "Balita", maxTahun: 6 },
+  { range: "6-14", nama: "Anak", maxTahun: 15 },
+  { range: "15-64", nama: "Produktif", maxTahun: 65 },
+  { range: "65+", nama: "Lansia", maxTahun: null },
 ];
 
-export function kategoriUsiaFungsional(usia: number | null): string {
-  if (usia === null) return "";
+/**
+ * Tanggal lahir → Date. Tahun saja dianggap 1 Januari.
+ */
+function tanggalLahirDate(ttl?: string | null): Date | null {
+  const s = parseTanggalLahir(ttl);
+  if (!s) return null;
+  if (/^\d{4}$/.test(s)) return new Date(parseInt(s, 10), 0, 1);
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return null;
+  return new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));
+}
+
+function tambahTahun(d: Date, n: number): Date {
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  x.setFullYear(x.getFullYear() + n);
+  return x;
+}
+
+/**
+ * Skema kategori ketiga berbasis ulang tahun (presisi hari), bukan angka tahun.
+ * Jadi anak yang baru berusia 2 tahun lebih 1 hari sudah masuk Balita.
+ */
+export function kategoriUsiaFungsional(ttl?: string | null): string {
+  const lahir = tanggalLahirDate(ttl);
+  if (!lahir) return "";
+  const now = new Date();
+  const hariIni = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const k = KATEGORI_USIA_FUNGSIONAL_LIST.find(
-    (x) => usia >= x.min && (x.max === null || usia <= x.max),
+    (x) => x.maxTahun === null || hariIni < tambahTahun(lahir, x.maxTahun),
   );
   return k ? k.range : "";
 }
 
-export function labelKategoriUsiaFungsional(usia: number | null): string {
-  if (usia === null) return "";
-  const k = KATEGORI_USIA_FUNGSIONAL_LIST.find(
-    (x) => usia >= x.min && (x.max === null || usia <= x.max),
-  );
+export function labelKategoriUsiaFungsional(ttl?: string | null): string {
+  const range = kategoriUsiaFungsional(ttl);
+  if (!range) return "";
+  const k = KATEGORI_USIA_FUNGSIONAL_LIST.find((x) => x.range === range);
   return k ? `${k.range} · ${k.nama}` : "";
 }
 

@@ -67,7 +67,7 @@ export default function LaporanPage() {
     { label: "Dewasa (25-59)", key: "dewasa_b" },
     { label: "Lansia (60+)", key: "lansia_b" },
     { label: "Bayi (0-2)", key: "bayi_f" },
-    { label: "Balita (3-5)", key: "balita_f" },
+    { label: "Balita (2-5)", key: "balita_f" },
     { label: "Anak (6-14)", key: "anak_f" },
     { label: "Produktif (15-64)", key: "produktif_f" },
     { label: "Lansia (65+)", key: "lansia_f" },
