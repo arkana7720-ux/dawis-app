@@ -30,9 +30,11 @@ import {
 import { TambahWargaWizard } from "@/components/TambahWargaWizard";
 import {
   KATEGORI_USIA_BARU_LIST,
+  KATEGORI_USIA_FUNGSIONAL_LIST,
   PENDIDIKAN_LIST,
   formatTanggal,
   labelKategoriUsiaBaru,
+  labelKategoriUsiaFungsional,
   labelPendidikan,
   validasiWarga,
 } from "@/lib/calc";
@@ -67,6 +69,7 @@ interface WargaRow {
   kategori_usia: string;
   kategori: string;
   kategori_usia_baru: string;
+  kategori_usia_fungsional: string;
   pendidikan: string;
   wus: boolean;
   pus: boolean;
@@ -133,6 +136,7 @@ export default function WargaPage() {
   const [fKel, setFKel] = useState("");
   const [fKat, setFKat] = useState("");
   const [fKatBaru, setFKatBaru] = useState("");
+  const [fKatFung, setFKatFung] = useState("");
   const [fPend, setFPend] = useState("");
   const [fJk, setFJk] = useState("");
   const [fWus, setFWus] = useState("");
@@ -237,13 +241,14 @@ export default function WargaPage() {
       if (fKel && w.kelompok_nama !== fKel) return false;
       if (fKat && w.kategori !== fKat) return false;
       if (fKatBaru && w.kategori_usia_baru !== fKatBaru) return false;
+      if (fKatFung && w.kategori_usia_fungsional !== fKatFung) return false;
       if (fPend && w.pendidikan !== fPend) return false;
       if (fJk && w.jenis_kelamin !== fJk) return false;
       if (fWus === "wus" && !w.wus) return false;
       if (fWus === "pus" && !w.pus) return false;
       return true;
     });
-  }, [rows, q, fKel, fKat, fKatBaru, fPend, fJk, fWus, fStatus]);
+  }, [rows, q, fKel, fKat, fKatBaru, fKatFung, fPend, fJk, fWus, fStatus]);
 
   const flatKeluarga = useMemo(
     () =>
@@ -513,6 +518,17 @@ export default function WargaPage() {
             ? "pink"
             : "red";
 
+  const katFungColor = (k: string) =>
+    k === "0-2"
+      ? "slate"
+      : k === "3-5"
+        ? "amber"
+        : k === "6-14"
+          ? "green"
+          : k === "15-64"
+            ? "indigo"
+            : "purple";
+
   const pendColor = (k: string) =>
     k === "0-3"
       ? "slate"
@@ -540,12 +556,13 @@ export default function WargaPage() {
     setFKel("");
     setFKat("");
     setFKatBaru("");
+    setFKatFung("");
     setFPend("");
     setFJk("");
     setFWus("");
   };
 
-  const hasFilter = q || fKel || fKat || fKatBaru || fPend || fJk || fWus;
+  const hasFilter = q || fKel || fKat || fKatBaru || fKatFung || fPend || fJk || fWus;
 
   if (loadErr) return <ErrorState message={loadErr} onRetry={load} />;
 
@@ -688,6 +705,14 @@ export default function WargaPage() {
                   </option>
                 ))}
               </select>
+              <select className={`${inputCls} w-44`} value={fKatFung} onChange={(e) => setFKatFung(e.target.value)}>
+                <option value="">Kategori Fungsional</option>
+                {KATEGORI_USIA_FUNGSIONAL_LIST.map((k) => (
+                  <option key={k.range} value={k.range}>
+                    {k.range} · {k.nama}
+                  </option>
+                ))}
+              </select>
               <select className={`${inputCls} w-36`} value={fPend} onChange={(e) => setFPend(e.target.value)}>
                 <option value="">Pendidikan</option>
                 {PENDIDIKAN_LIST.map((k) => (
@@ -762,6 +787,14 @@ export default function WargaPage() {
               <select className={inputCls} value={fKatBaru} onChange={(e) => setFKatBaru(e.target.value)}>
                 <option value="">Semua Kategori Baru</option>
                 {KATEGORI_USIA_BARU_LIST.map((k) => (
+                  <option key={k.range} value={k.range}>
+                    {k.range} · {k.nama}
+                  </option>
+                ))}
+              </select>
+              <select className={inputCls} value={fKatFung} onChange={(e) => setFKatFung(e.target.value)}>
+                <option value="">Semua Kategori Fungsional</option>
+                {KATEGORI_USIA_FUNGSIONAL_LIST.map((k) => (
                   <option key={k.range} value={k.range}>
                     {k.range} · {k.nama}
                   </option>
@@ -851,6 +884,7 @@ export default function WargaPage() {
                     <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">Usia</th>
                     <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Kategori</th>
                     <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Kategori Baru</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Fungsional</th>
                     <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Pendidikan</th>
                     <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">KB</th>
                     <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
@@ -895,6 +929,15 @@ export default function WargaPage() {
                         {w.kategori_usia_baru ? (
                           <Badge color={katBaruColor(w.kategori_usia_baru) as any}>
                             {labelKategoriUsiaBaru(w.usia)}
+                          </Badge>
+                        ) : (
+                          "-"
+                        )}
+                      </td>
+                      <td className="px-3 py-3">
+                        {w.kategori_usia_fungsional ? (
+                          <Badge color={katFungColor(w.kategori_usia_fungsional) as any}>
+                            {labelKategoriUsiaFungsional(w.usia)}
                           </Badge>
                         ) : (
                           "-"
@@ -1012,6 +1055,11 @@ export default function WargaPage() {
                       {labelKategoriUsiaBaru(w.usia)}
                     </Badge>
                   )}
+                  {w.kategori_usia_fungsional && (
+                    <Badge color={katFungColor(w.kategori_usia_fungsional) as any}>
+                      {labelKategoriUsiaFungsional(w.usia)}
+                    </Badge>
+                  )}
                   {w.pendidikan && (
                     <Badge color={pendColor(w.pendidikan) as any}>
                       {labelPendidikan(w.usia)}
@@ -1086,6 +1134,16 @@ export default function WargaPage() {
                   value={
                     <Badge color={katBaruColor(detailRow.kategori_usia_baru) as any}>
                       {labelKategoriUsiaBaru(detailRow.usia)}
+                    </Badge>
+                  }
+                />
+              )}
+              {detailRow.kategori_usia_fungsional && (
+                <InfoRow
+                  label="Kategori Usia Fungsional"
+                  value={
+                    <Badge color={katFungColor(detailRow.kategori_usia_fungsional) as any}>
+                      {labelKategoriUsiaFungsional(detailRow.usia)}
                     </Badge>
                   }
                 />
@@ -1311,7 +1369,8 @@ export default function WargaPage() {
         )}
 
         <p className="text-[11px] leading-relaxed text-slate-400">
-          Usia, kategori usia, kategori usia baru (0-5/6-9/10-24/25-59/60+), pendidikan
+          Usia, kategori usia, kategori usia baru (0-5/6-9/10-24/25-59/60+), kategori usia
+          fungsional (0-2/3-5/6-14/15-64/65+), pendidikan
           (0-3/4-6/7-12/13-15/16-18/19-22/23+), dan status WUS/PUS dihitung otomatis dari
           tanggal lahir.
         </p>

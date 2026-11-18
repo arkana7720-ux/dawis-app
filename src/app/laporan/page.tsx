@@ -10,6 +10,7 @@ interface Stats {
   byKelompok: Array<Record<string, string | number>>;
   distribusiUsia: Array<{ label: string; L: number; P: number }>;
   distribusiKategoriBaru: Array<{ label: string; nama: string; L: number; P: number }>;
+  distribusiKategoriFungsional: Array<{ label: string; nama: string; L: number; P: number }>;
   distribusiPendidikan: Array<{ label: string; nama: string; L: number; P: number }>;
 }
 
@@ -65,6 +66,11 @@ export default function LaporanPage() {
     { label: "Remaja (10-24)", key: "remaja_b" },
     { label: "Dewasa (25-59)", key: "dewasa_b" },
     { label: "Lansia (60+)", key: "lansia_b" },
+    { label: "Bayi (0-2)", key: "bayi_f" },
+    { label: "Balita (3-5)", key: "balita_f" },
+    { label: "Anak (6-14)", key: "anak_f" },
+    { label: "Produktif (15-64)", key: "produktif_f" },
+    { label: "Lansia (65+)", key: "lansia_f" },
     { label: "WUS", key: "wus" },
     { label: "PUS", key: "pus" },
   ];
@@ -234,6 +240,42 @@ export default function LaporanPage() {
           </thead>
           <tbody>
             {stats.distribusiKategoriBaru.map((d) => (
+              <tr key={d.label} className="odd:bg-white even:bg-emerald-50/25">
+                <td className="border border-slate-300 px-3 py-1.5 text-slate-700">
+                  {d.label} · {d.nama}
+                </td>
+                <td className="border border-slate-300 px-3 py-1.5 text-center tabular-nums">{d.L}</td>
+                <td className="border border-slate-300 px-3 py-1.5 text-center tabular-nums">{d.P}</td>
+                <td className="border border-slate-300 px-3 py-1.5 text-center font-semibold tabular-nums">
+                  {d.L + d.P}
+                </td>
+              </tr>
+            ))}
+            <tr className="bg-emerald-50/70 font-bold text-slate-900">
+              <td className="border border-slate-300 px-3 py-1.5">TOTAL</td>
+              <td className="border border-slate-300 px-3 py-1.5 text-center tabular-nums">{t.laki}</td>
+              <td className="border border-slate-300 px-3 py-1.5 text-center tabular-nums">{t.perempuan}</td>
+              <td className="border border-slate-300 px-3 py-1.5 text-center tabular-nums">{t.individu}</td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+
+        <h2 className="mb-3 mt-8 border-l-4 border-emerald-500 pl-2.5 text-sm font-extrabold uppercase tracking-wide text-slate-800">
+          Distribusi Kategori Usia Fungsional per Jenis Kelamin
+        </h2>
+        <div className="overflow-x-auto">
+        <table className="w-full border-collapse text-sm">
+          <thead>
+            <tr className="bg-emerald-50/80 text-[11px] uppercase tracking-wider text-emerald-900/70">
+              <th className="border border-slate-300 px-3 py-2.5 text-left font-bold">Kategori Usia Fungsional</th>
+              <th className="border border-slate-300 px-3 py-2.5 text-center font-bold">Laki-laki</th>
+              <th className="border border-slate-300 px-3 py-2.5 text-center font-bold">Perempuan</th>
+              <th className="border border-slate-300 px-3 py-2.5 text-center font-bold">Jumlah</th>
+            </tr>
+          </thead>
+          <tbody>
+            {stats.distribusiKategoriFungsional.map((d) => (
               <tr key={d.label} className="odd:bg-white even:bg-emerald-50/25">
                 <td className="border border-slate-300 px-3 py-1.5 text-slate-700">
                   {d.label} · {d.nama}

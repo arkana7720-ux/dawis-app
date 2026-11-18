@@ -35,6 +35,7 @@ interface Stats {
   byKelompok: Array<Record<string, string | number>>;
   distribusiUsia: Array<{ label: string; L: number; P: number }>;
   distribusiKategoriBaru: Array<{ label: string; nama: string; L: number; P: number }>;
+  distribusiKategoriFungsional: Array<{ label: string; nama: string; L: number; P: number }>;
   distribusiPendidikan: Array<{ label: string; nama: string; L: number; P: number }>;
   kbAktif?: number;
 }
@@ -52,6 +53,7 @@ interface WargaRow {
   usia: number | null;
   kategori: string;
   kategori_usia_baru: string;
+  kategori_usia_fungsional: string;
   wus: boolean;
   pus: boolean;
   status_warga: string;
@@ -680,6 +682,45 @@ export default function DashboardPage() {
 
       <Card className="mt-5 overflow-hidden">
         <CardHeader
+          title="Distribusi Kategori Usia Fungsional per Jenis Kelamin"
+          desc="Bayi 0-2 · Balita 3-5 · Anak 6-14 · Produktif 15-64 · Lansia 65+"
+        />
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[480px] text-sm">
+            <thead>
+              <tr className="border-b border-white/70 bg-white/40 text-left text-[11px] uppercase tracking-wider text-slate-500">
+                <th className="px-5 py-3 font-bold">Kategori Usia Fungsional</th>
+                <th className="px-3 py-3 text-center font-bold">Laki-laki</th>
+                <th className="px-3 py-3 text-center font-bold">Perempuan</th>
+                <th className="px-3 py-3 text-center font-bold">Jumlah</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100/70">
+              {stats.distribusiKategoriFungsional.map((d) => (
+                <tr key={d.label} className="transition-colors hover:bg-white/50">
+                  <td className="px-5 py-3.5 font-semibold text-slate-800">
+                    {d.label} · {d.nama}
+                  </td>
+                  <td className="px-3 py-3.5 text-center tabular-nums text-slate-600">{d.L}</td>
+                  <td className="px-3 py-3.5 text-center tabular-nums text-slate-600">{d.P}</td>
+                  <td className="px-3 py-3.5 text-center font-bold tabular-nums text-slate-900">
+                    {d.L + d.P}
+                  </td>
+                </tr>
+              ))}
+              <tr className="bg-gradient-to-r from-emerald-50/80 to-teal-50/60 font-extrabold text-slate-900">
+                <td className="px-5 py-3.5">TOTAL</td>
+                <td className="px-3 py-3.5 text-center tabular-nums">{t.laki}</td>
+                <td className="px-3 py-3.5 text-center tabular-nums">{t.perempuan}</td>
+                <td className="px-3 py-3.5 text-center tabular-nums">{t.individu}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      <Card className="mt-5 overflow-hidden">
+        <CardHeader
           title="Distribusi Pendidikan per Jenis Kelamin"
           desc="Belum Sekolah 0-3 · Paud/TK 4-6 · SD 7-12 · SMP 13-15 · SMA 16-18 · S1 19-22 · Lainnya 23+"
         />
@@ -903,7 +944,39 @@ export default function DashboardPage() {
           </tbody>
         </table>
 
-        <h3 className="mb-2 mt-6 text-sm font-extrabold uppercase tracking-wide">B-2. Distribusi Pendidikan per Jenis Kelamin</h3>
+        <h3 className="mb-2 mt-6 text-sm font-extrabold uppercase tracking-wide">B-2. Distribusi Kategori Usia Fungsional per Jenis Kelamin</h3>
+        <table className="w-full border-collapse text-sm">
+          <thead>
+            <tr className="bg-slate-100 text-[11px] uppercase tracking-wider text-slate-600">
+              <th className="border border-slate-300 px-3 py-2 text-left font-bold">Kategori Usia Fungsional</th>
+              <th className="border border-slate-300 px-2 py-2 text-center font-bold">Laki-laki</th>
+              <th className="border border-slate-300 px-2 py-2 text-center font-bold">Perempuan</th>
+              <th className="border border-slate-300 px-2 py-2 text-center font-bold">Jumlah</th>
+            </tr>
+          </thead>
+          <tbody>
+            {stats.distribusiKategoriFungsional.map((d) => (
+              <tr key={d.label} className="odd:bg-white even:bg-slate-50/50">
+                <td className="border border-slate-300 px-3 py-1.5">
+                  {d.label} · {d.nama}
+                </td>
+                <td className="border border-slate-300 px-2 py-1.5 text-center tabular-nums">{d.L}</td>
+                <td className="border border-slate-300 px-2 py-1.5 text-center tabular-nums">{d.P}</td>
+                <td className="border border-slate-300 px-2 py-1.5 text-center font-semibold tabular-nums">
+                  {d.L + d.P}
+                </td>
+              </tr>
+            ))}
+            <tr className="bg-emerald-50/70 font-extrabold">
+              <td className="border border-slate-300 px-3 py-1.5">TOTAL</td>
+              <td className="border border-slate-300 px-2 py-1.5 text-center tabular-nums">{t.laki}</td>
+              <td className="border border-slate-300 px-2 py-1.5 text-center tabular-nums">{t.perempuan}</td>
+              <td className="border border-slate-300 px-2 py-1.5 text-center tabular-nums">{t.individu}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 className="mb-2 mt-6 text-sm font-extrabold uppercase tracking-wide">B-3. Distribusi Pendidikan per Jenis Kelamin</h3>
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="bg-slate-100 text-[11px] uppercase tracking-wider text-slate-600">

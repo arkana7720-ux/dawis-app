@@ -5,6 +5,8 @@ import {
   kategori,
   kategoriUsiaBaru,
   KATEGORI_USIA_BARU_LIST,
+  kategoriUsiaFungsional,
+  KATEGORI_USIA_FUNGSIONAL_LIST,
   pendidikanUsia,
   PENDIDIKAN_LIST,
   isWUS,
@@ -52,6 +54,7 @@ export interface WargaRow {
   kategori_usia: string;
   kategori: string;
   kategori_usia_baru: string;
+  kategori_usia_fungsional: string;
   pendidikan: string;
   wus: boolean;
   pus: boolean;
@@ -141,6 +144,7 @@ export async function getAllWarga(db: SupabaseClient): Promise<WargaRow[]> {
       kategori_usia: kategoriUsia(usia),
       kategori: kategori(usia),
       kategori_usia_baru: kategoriUsiaBaru(usia),
+      kategori_usia_fungsional: kategoriUsiaFungsional(usia),
       pendidikan: pendidikanUsia(usia),
       wus: isWUS(r, usia),
       pus: isPUS(r, usia),
@@ -380,6 +384,11 @@ export async function getStats(db: SupabaseClient) {
       remaja_b: w.filter((x) => x.kategori_usia_baru === "10-24").length,
       dewasa_b: w.filter((x) => x.kategori_usia_baru === "25-59").length,
       lansia_b: w.filter((x) => x.kategori_usia_baru === "60+").length,
+      bayi_f: w.filter((x) => x.kategori_usia_fungsional === "0-2").length,
+      balita_f: w.filter((x) => x.kategori_usia_fungsional === "3-5").length,
+      anak_f: w.filter((x) => x.kategori_usia_fungsional === "6-14").length,
+      produktif_f: w.filter((x) => x.kategori_usia_fungsional === "15-64").length,
+      lansia_f: w.filter((x) => x.kategori_usia_fungsional === "65+").length,
       pend0_3: w.filter((x) => x.pendidikan === "0-3").length,
       pend4_6: w.filter((x) => x.pendidikan === "4-6").length,
       pend7_12: w.filter((x) => x.pendidikan === "7-12").length,
@@ -413,6 +422,11 @@ export async function getStats(db: SupabaseClient) {
       remaja_b: a.remaja_b + k.remaja_b,
       dewasa_b: a.dewasa_b + k.dewasa_b,
       lansia_b: a.lansia_b + k.lansia_b,
+      bayi_f: a.bayi_f + k.bayi_f,
+      balita_f: a.balita_f + k.balita_f,
+      anak_f: a.anak_f + k.anak_f,
+      produktif_f: a.produktif_f + k.produktif_f,
+      lansia_f: a.lansia_f + k.lansia_f,
       pend0_3: a.pend0_3 + k.pend0_3,
       pend4_6: a.pend4_6 + k.pend4_6,
       pend7_12: a.pend7_12 + k.pend7_12,
@@ -431,6 +445,7 @@ export async function getStats(db: SupabaseClient) {
       bangunan: 0, keluarga: 0, individu: 0, laki: 0, perempuan: 0,
       balita: 0, anak: 0, remaja: 0, dewasa: 0, lansia: 0,
       balita_b: 0, anak_b: 0, remaja_b: 0, dewasa_b: 0, lansia_b: 0,
+      bayi_f: 0, balita_f: 0, anak_f: 0, produktif_f: 0, lansia_f: 0,
       pend0_3: 0, pend4_6: 0, pend7_12: 0, pend13_15: 0, pend16_18: 0, pend19_22: 0, pend23: 0,
       pus: 0, wus: 0,
       ibu_hamil: 0,
@@ -454,6 +469,13 @@ export async function getStats(db: SupabaseClient) {
     P: aktif.filter((w) => w.kategori_usia_baru === k.range && w.jenis_kelamin === "P").length,
   }));
 
+  const distribusiKategoriFungsional = KATEGORI_USIA_FUNGSIONAL_LIST.map((k) => ({
+    label: k.range,
+    nama: k.nama,
+    L: aktif.filter((w) => w.kategori_usia_fungsional === k.range && w.jenis_kelamin === "L").length,
+    P: aktif.filter((w) => w.kategori_usia_fungsional === k.range && w.jenis_kelamin === "P").length,
+  }));
+
   const distribusiPendidikan = PENDIDIKAN_LIST.map((k) => ({
     label: k.range,
     nama: k.nama,
@@ -471,6 +493,7 @@ export async function getStats(db: SupabaseClient) {
     byKelompok,
     distribusiUsia,
     distribusiKategoriBaru,
+    distribusiKategoriFungsional,
     distribusiPendidikan,
     kbAktif: aktif.filter((w) => w.status_kb && w.status_kb.trim() !== "").length,
   };

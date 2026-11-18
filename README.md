@@ -41,8 +41,9 @@ Menggantikan Google Sheet "Data Dawis Yusril" dengan database Supabase
 - **Panel Admin** (khusus akun admin) — daftar semua akun, reset password,
   perbaiki nama, nonaktifkan akun ganda, pindahkan data, atau hapus akun yang
   salah daftar. Panel ini **tidak** bisa membuka isi data warga akun lain.
-- Usia, kategori usia, kategori (Balita/Anak/Remaja/Dewasa/Lansia), serta
-  status **WUS/PUS dihitung otomatis** dari tanggal lahir.
+- Usia, kategori usia, kategori (Balita/Anak/Remaja/Dewasa/Lansia), kategori
+  usia fungsional (Bayi 0-2, Balita 3-5, Anak 6-14, Produktif 15-64, Lansia 65+),
+  serta status **WUS/PUS dihitung otomatis** dari tanggal lahir.
 
 ## Akun & Login
 

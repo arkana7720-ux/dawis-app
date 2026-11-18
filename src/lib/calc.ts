@@ -231,6 +231,39 @@ export function labelKategoriUsiaBaru(usia: number | null): string {
   return k ? `${k.range} · ${k.nama}` : "";
 }
 
+/**
+ * Skema kategori ketiga: tahap kehidupan (Bayi → Lansia).
+ * Dipakai berdampingan dengan kategori lama dan kategori baru.
+ */
+export const KATEGORI_USIA_FUNGSIONAL_LIST: Array<{
+  range: string;
+  nama: string;
+  min: number;
+  max: number | null;
+}> = [
+  { range: "0-2", nama: "Bayi", min: 0, max: 2 },
+  { range: "3-5", nama: "Balita", min: 3, max: 5 },
+  { range: "6-14", nama: "Anak", min: 6, max: 14 },
+  { range: "15-64", nama: "Produktif", min: 15, max: 64 },
+  { range: "65+", nama: "Lansia", min: 65, max: null },
+];
+
+export function kategoriUsiaFungsional(usia: number | null): string {
+  if (usia === null) return "";
+  const k = KATEGORI_USIA_FUNGSIONAL_LIST.find(
+    (x) => usia >= x.min && (x.max === null || usia <= x.max),
+  );
+  return k ? k.range : "";
+}
+
+export function labelKategoriUsiaFungsional(usia: number | null): string {
+  if (usia === null) return "";
+  const k = KATEGORI_USIA_FUNGSIONAL_LIST.find(
+    (x) => usia >= x.min && (x.max === null || usia <= x.max),
+  );
+  return k ? `${k.range} · ${k.nama}` : "";
+}
+
 export const PENDIDIKAN_LIST: Array<{
   range: string;
   nama: string;
